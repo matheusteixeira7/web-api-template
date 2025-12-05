@@ -2,9 +2,11 @@
   "name": "@workspace/database",
   "version": "1.0.0",
   "exports": {
-    ".": "./src/client.ts"
+    ".": "./src/index.ts"
   },
   "scripts": {
+    "db:generate": "prisma generate",
+    "db:migrate": "npx prisma migrate dev --skip-generate",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:migrate:dev": "prisma migrate dev",
     "db:push": "prisma db push",
