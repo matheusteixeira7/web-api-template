@@ -51,22 +51,22 @@ pnpm --filter web build
 pnpm --filter web typecheck
 ```
 
-### Database (Drizzle ORM)
+### Database (Prisma ORM)
 ```bash
-# Generate migrations
-pnpm --filter @workspace/db db:generate
+# Generate Prisma client
+pnpm --filter @workspace/database db:generate
 
-# Run migrations
-pnpm --filter @workspace/db db:migrate
+# Run migrations (dev)
+pnpm --filter @workspace/database db:migrate
 
 # Push schema changes (dev only)
-pnpm --filter @workspace/db db:push
+pnpm --filter @workspace/database db:push
 
-# Open Drizzle Studio
-pnpm --filter @workspace/db db:studio
+# Open Prisma Studio
+pnpm --filter @workspace/database studio
 
-# Build db package
-pnpm --filter @workspace/db build
+# Build database package
+pnpm --filter @workspace/database build
 ```
 
 ### Docker
@@ -84,7 +84,7 @@ This is a **pnpm monorepo** using **Turborepo** for orchestration.
 - **`apps/web`**: Next.js 15 with React 19, Turbopack, and shadcn/ui
 
 ### Packages
-- **`packages/db`**: Drizzle ORM with PostgreSQL, exports database client and schema
+- **`packages/database`**: Prisma ORM with PostgreSQL, exports database client and generated types
 - **`packages/ui`**: Shared shadcn/ui components (import as `@workspace/ui/components/...`)
 - **`packages/eslint-config`**: Shared ESLint configuration
 - **`packages/typescript-config`**: Shared TypeScript configuration
@@ -97,10 +97,10 @@ This is a **pnpm monorepo** using **Turborepo** for orchestration.
 - `dto/` - Data transfer objects
 - `entities/` - Entity definitions
 
-**Database Schema** (`packages/db/src/schema/`):
-- Uses better-auth tables (user, session, account, verification)
-- Import schema from `@workspace/db/schema`
-- Import db client from `@workspace/db`
+**Database** (`packages/database/`):
+- Schema defined in `prisma/schema.prisma`
+- Import client and types: `import { prisma, User } from '@workspace/database'`
+- Generated Prisma client in `generated/prisma/` (gitignored, run `db:generate`)
 
 **Authentication**: Uses `better-auth` with `@thallesp/nestjs-better-auth` integration.
 

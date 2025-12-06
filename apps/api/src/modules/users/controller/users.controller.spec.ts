@@ -1,4 +1,4 @@
-import { UsersService } from '@/modules/users/use-cases/find-one-user.usecase';
+import { FindUserUseCase } from '@/modules/users/use-cases/find-user.usecase';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersController } from './users.controller';
 
@@ -8,7 +8,7 @@ describe('UsersController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
-      providers: [UsersService],
+      providers: [FindUserUseCase],
     }).compile();
 
     controller = module.get<UsersController>(UsersController);

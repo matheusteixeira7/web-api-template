@@ -1,18 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UsersService } from './find-one-user.usecase';
+import { CreateUserUseCase } from './create-user.usecase';
 
 describe('UsersService', () => {
-  let service: UsersService;
+  let usecase: CreateUserUseCase;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [UsersService],
+      providers: [CreateUserUseCase],
     }).compile();
 
-    service = module.get<UsersService>(UsersService);
+    usecase = module.get<CreateUserUseCase>(CreateUserUseCase);
   });
 
   it('should be defined', () => {
-    expect(service).toBeDefined();
+    expect(usecase).toBeDefined();
   });
 });
