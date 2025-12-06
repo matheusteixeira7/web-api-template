@@ -7,6 +7,8 @@ export const findUserSchema = z.object({
 
 export type FindUserInputDto = z.infer<typeof findUserSchema>;
 
+export type UserWithoutPassword = Omit<User, 'password'>;
+
 export interface FindUserResponseDto {
-  user: User;
+  user: UserWithoutPassword;
 }

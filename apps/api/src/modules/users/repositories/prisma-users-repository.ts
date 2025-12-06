@@ -1,8 +1,8 @@
 import { prisma, User as PrismaUser } from '@workspace/database';
 import { User } from '../entities/user.entity';
-import type { UsersRepository } from './users.repository';
+import { UsersRepository } from './users.repository';
 
-export class PrismaUsersRepository implements UsersRepository {
+export class PrismaUsersRepository extends UsersRepository {
   async findById(id: string): Promise<User | null> {
     const user = await prisma.user.findUnique({
       where: {
@@ -17,9 +17,29 @@ export class PrismaUsersRepository implements UsersRepository {
     return this.mapToEntity(user);
   }
 
+  async findByEmail(email: string): Promise<User | null> {
+    const user = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    return this.mapToEntity(user);
+  }
+
   async create(data: User): Promise<User> {
     const createdUser = await prisma.user.create({
-      data,
+      data: {
+        id: data.id,
+        email: data.email,
+        name: data.name,
+        password: data.password,
+        role: data.role,
+      },
     });
 
     return this.mapToEntity(createdUser);
@@ -30,7 +50,12 @@ export class PrismaUsersRepository implements UsersRepository {
       where: {
         id: user.id,
       },
-      data: user,
+      data: {
+        email: user.email,
+        name: user.name,
+        password: user.password,
+        role: user.role,
+      },
     });
 
     return this.mapToEntity(updatedUser);
@@ -41,6 +66,8 @@ export class PrismaUsersRepository implements UsersRepository {
       id: user.id,
       email: user.email,
       name: user.name || '',
+      password: user.password,
+      role: user.role,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
       deletedAt: user.deletedAt,

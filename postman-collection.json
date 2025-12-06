@@ -1,7 +1,6 @@
 {
   "info": {
-    "_postman_id": "healthsync-api-collection",
-    "name": "HealthSync API",
+    "name": "Web API Template",
     "description": "API collection for HealthSync Web API Template",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -12,17 +11,27 @@
       "type": "string"
     },
     {
-      "key": "authToken",
+      "key": "accessToken",
       "value": "",
       "type": "string"
     }
   ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
   "item": [
     {
-      "name": "Root",
+      "name": "Health",
       "item": [
         {
-          "name": "Hello World",
+          "name": "Health Check",
           "request": {
             "method": "GET",
             "header": [],
@@ -30,8 +39,7 @@
               "raw": "{{baseUrl}}/",
               "host": ["{{baseUrl}}"],
               "path": [""]
-            },
-            "description": "Root endpoint - returns Hello World!"
+            }
           },
           "response": []
         }
@@ -41,24 +49,11 @@
       "name": "Auth",
       "item": [
         {
-          "name": "Register",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "if (pm.response.code === 201 || pm.response.code === 200) {",
-                  "    const response = pm.response.json();",
-                  "    if (response.token) {",
-                  "        pm.collectionVariables.set('authToken', response.token);",
-                  "    }",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "name": "Create Account",
           "request": {
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [
               {
@@ -68,29 +63,26 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\",\n  \"name\": \"John Doe\"\n}"
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"123456\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/auth/register",
+              "raw": "{{baseUrl}}/accounts",
               "host": ["{{baseUrl}}"],
-              "path": ["auth", "register"]
-            },
-            "description": "User registration endpoint. Returns user object and authentication token."
+              "path": ["accounts"]
+            }
           },
           "response": []
         },
         {
-          "name": "Login",
+          "name": "Authenticate",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "if (pm.response.code === 200 || pm.response.code === 201) {",
-                  "    const response = pm.response.json();",
-                  "    if (response.token) {",
-                  "        pm.collectionVariables.set('authToken', response.token);",
-                  "    }",
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.access_token) {",
+                  "    pm.collectionVariables.set(\"accessToken\", jsonData.access_token);",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -98,6 +90,9 @@
             }
           ],
           "request": {
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [
               {
@@ -107,100 +102,13 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"123456\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/auth/login",
+              "raw": "{{baseUrl}}/sessions",
               "host": ["{{baseUrl}}"],
-              "path": ["auth", "login"]
-            },
-            "description": "User login endpoint. Returns user object and authentication token."
-          },
-          "response": []
-        },
-        {
-          "name": "Get Current User (Me)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/auth/me",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "me"]
-            },
-            "description": "Get current authenticated user session. Requires valid session."
-          },
-          "response": []
-        },
-        {
-          "name": "Refresh Token",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "if (pm.response.code === 200 || pm.response.code === 201) {",
-                  "    const response = pm.response.json();",
-                  "    if (response.token) {",
-                  "        pm.collectionVariables.set('authToken', response.token);",
-                  "    }",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
+              "path": ["sessions"]
             }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/auth/refresh",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "refresh"]
-            },
-            "description": "Refresh authentication token. Returns new token."
-          },
-          "response": []
-        },
-        {
-          "name": "Logout",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "if (pm.response.code === 200 || pm.response.code === 201) {",
-                  "    pm.collectionVariables.set('authToken', '');",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/auth/logout",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "logout"]
-            },
-            "description": "User logout endpoint. Returns { success: true }."
           },
           "response": []
         }
@@ -210,35 +118,43 @@
       "name": "Users",
       "item": [
         {
-          "name": "Get Profile",
+          "name": "Create User",
           "request": {
-            "method": "GET",
+            "method": "POST",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
+                "key": "Content-Type",
+                "value": "application/json"
               }
             ],
-            "url": {
-              "raw": "{{baseUrl}}/users/profile",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "profile"]
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jane Doe\",\n  \"email\": \"jane@example.com\",\n  \"password\": \"123456\"\n}"
             },
-            "description": "Get current user profile. Requires authentication."
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            }
           },
           "response": []
         },
         {
-          "name": "Health Check",
+          "name": "Find User by ID",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/users/health",
+              "raw": "{{baseUrl}}/users/:id",
               "host": ["{{baseUrl}}"],
-              "path": ["users", "health"]
-            },
-            "description": "Health check endpoint. Returns { status: 'ok' }. No authentication required."
+              "path": ["users", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "user-uuid-here"
+                }
+              ]
+            }
           },
           "response": []
         }

@@ -17,8 +17,11 @@ export class FindUserUseCase {
       throw new ResourceNotFoundError();
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...userWithoutPassword } = user;
+
     return {
-      user,
+      user: userWithoutPassword,
     };
   }
 }

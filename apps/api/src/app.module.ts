@@ -1,39 +1,19 @@
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
-import { JwtModule } from '@nestjs/jwt';
-import { PassportModule } from '@nestjs/passport';
-import { JwtAuthGuard } from './infra/auth/jwt-auth.guard';
-import { JwtStrategy } from './infra/auth/jwt.strategy';
+import { ConfigModule } from '@nestjs/config';
+import { InfraAuthModule } from './infra/auth/auth.module';
 import { EnvModule } from './infra/env/env.module';
-import { EnvService } from './infra/env/env.service';
+import { AuthModule } from './modules/auth/auth.module';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
   imports: [
-    PassportModule,
-    JwtModule.registerAsync({
-      imports: [EnvModule],
-      inject: [EnvService],
-      global: true,
-      useFactory(env: EnvService) {
-        const privateKey = env.get('JWT_PRIVATE_KEY');
-        const publicKey = env.get('JWT_PUBLIC_KEY');
-
-        return {
-          signOptions: { algorithm: 'RS256' },
-          privateKey: Buffer.from(privateKey, 'base64'),
-          publicKey: Buffer.from(publicKey, 'base64'),
-        };
-      },
+    ConfigModule.forRoot({
+      isGlobal: true,
     }),
     EnvModule,
-  ],
-  providers: [
-    JwtStrategy,
-    EnvService,
-    {
-      provide: APP_GUARD,
-      useClass: JwtAuthGuard,
-    },
+    InfraAuthModule,
+    AuthModule,
+    UsersModule,
   ],
 })
-export class AuthModule {}
+export class AppModule {}

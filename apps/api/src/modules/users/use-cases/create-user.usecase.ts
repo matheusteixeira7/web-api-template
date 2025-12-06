@@ -13,16 +13,21 @@ export class CreateUserUseCase {
   async execute({
     email,
     name,
+    password,
   }: CreateUserInputDto): Promise<CreateUserResponseDto> {
     const userEntity = new User({
       email,
       name,
+      password,
     });
 
-    const user = await this.usersRepository.create(userEntity);
+    const createdUser = await this.usersRepository.create(userEntity);
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _, ...userWithoutPassword } = createdUser;
 
     return {
-      user,
+      user: userWithoutPassword,
     };
   }
 }
