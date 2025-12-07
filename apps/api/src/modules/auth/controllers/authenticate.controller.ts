@@ -1,4 +1,5 @@
-import { Body, Controller, Post, UsePipes } from '@nestjs/common';
+import { Body, Controller, Post, Res, UsePipes } from '@nestjs/common';
+import { FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { Public } from '@/infra/auth/public';
 import { ZodValidationPipe } from '@/shared/pipes/zod-validation.pipe';
@@ -18,12 +19,22 @@ export class AuthenticateController {
 
   @Post()
   @UsePipes(new ZodValidationPipe(authenticateBodySchema))
-  async handle(@Body() body: AuthenticateBody) {
+  async handle(
+    @Body() body: AuthenticateBody,
+    @Res({ passthrough: true }) response: FastifyReply,
+  ) {
     const { email, password } = body;
 
     const { accessToken } = await this.authenticateUser.execute({
       email,
       password,
+    });
+
+    response.setCookie('access_token', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
     });
 
     return {
