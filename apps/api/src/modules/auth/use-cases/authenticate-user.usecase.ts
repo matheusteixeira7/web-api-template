@@ -11,6 +11,7 @@ interface AuthenticateUserRequest {
 
 interface AuthenticateUserResponse {
   accessToken: string;
+  userId: string;
 }
 
 @Injectable()
@@ -45,6 +46,6 @@ export class AuthenticateUserUseCase {
       role: user.role,
     });
 
-    return { accessToken };
+    return { accessToken, userId: user.id };
   }
 }

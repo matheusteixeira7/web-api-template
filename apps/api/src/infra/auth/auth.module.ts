@@ -7,6 +7,7 @@ import { EnvService } from '../env/env.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { JwtStrategy } from './jwt.strategy';
 import { RolesGuard } from './roles.guard';
+import { CsrfGuard } from './csrf.guard';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { RolesGuard } from './roles.guard';
         const publicKey = env.get('JWT_PUBLIC_KEY');
 
         return {
-          signOptions: { algorithm: 'RS256' },
+          signOptions: { algorithm: 'RS256', expiresIn: '15m' },
           privateKey: Buffer.from(privateKey, 'base64'),
           publicKey: Buffer.from(publicKey, 'base64'),
         };
@@ -37,6 +38,10 @@ import { RolesGuard } from './roles.guard';
     {
       provide: APP_GUARD,
       useClass: RolesGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: CsrfGuard,
     },
   ],
 })
