@@ -4,8 +4,11 @@ import {
     IconBell,
     IconDotsVertical,
     IconLogout,
+    IconMoon,
+    IconSun,
     IconUserCircle,
 } from "@tabler/icons-react"
+import { useTheme } from "next-themes"
 
 import {
     Avatar,
@@ -41,6 +44,7 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar()
   const { signOut } = useSession()
+  const { theme, setTheme } = useTheme()
 
   return (
     <SidebarMenu>
@@ -93,6 +97,10 @@ export function NavUser({
               <DropdownMenuItem>
                 <IconBell />
                 Notificações
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+                {theme === "dark" ? <IconSun /> : <IconMoon />}
+                {theme === "dark" ? "Tema Claro" : "Tema Escuro"}
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

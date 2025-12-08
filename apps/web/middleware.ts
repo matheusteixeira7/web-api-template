@@ -1,8 +1,15 @@
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
-const publicRoutes = ["/login", "/register", "/forgot-password", "/reset-password", "/auth/callback", "/verify-email"];
-const authRoutes = ["/login", "/register"];
+const publicRoutes = [
+  "/auth/login",
+  "/auth/register",
+  "/auth/forgot-password",
+  "/auth/reset-password",
+  "/auth/callback",
+  "/auth/verify-email",
+];
+const authRoutes = ["/auth/login", "/auth/register"];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -29,7 +36,7 @@ export function middleware(request: NextRequest) {
   // If user is not authenticated and trying to access protected routes,
   // redirect to login
   if (!isAuthenticated && !isPublicRoute) {
-    const loginUrl = new URL("/login", request.url);
+    const loginUrl = new URL("/auth/login", request.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);
   }
@@ -47,5 +54,6 @@ export const config = {
      * - favicon.ico, sitemap.xml, robots.txt (metadata files)
      * - public assets
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|.*\\..*).*)"],
+    "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|.*\\..*).*)",
+  ],
 };

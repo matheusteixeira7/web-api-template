@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
 import { Loader2, XCircle } from "lucide-react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -88,7 +88,7 @@ export default function GoogleCallbackPage() {
                 {errorMessage}
               </p>
               <Button asChild variant="outline" className="w-full">
-                <Link href="/login">Voltar para Login</Link>
+                <Link href="/auth/login">Voltar para Login</Link>
               </Button>
             </>
           )}

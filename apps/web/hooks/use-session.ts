@@ -51,7 +51,7 @@ export function useSession() {
       // Ignora erros no logout
     }
 
-    router.push("/login");
+    router.push("/auth/login");
   }, [queryClient, router]);
 
   return {
