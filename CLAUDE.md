@@ -2,6 +2,21 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Project Overview
+
+**HealthSync** - SaaS platform for scheduling and management for small/medium clinics in Brazil.
+
+Key features:
+- Multi-professional appointment scheduling
+- Patient management
+- Automatic WhatsApp confirmations
+- Public booking link
+- Real-time dashboard
+- Subscription and billing management
+- Analytics and ROI dashboard
+
+See `docs/business-plan.md` for detailed requirements and user stories.
+
 ## Build & Development Commands
 
 ```bash
@@ -92,7 +107,7 @@ This is a **pnpm monorepo** using **Turborepo** for orchestration.
 ### Key Patterns
 
 **API Module Structure** (`apps/api/src/modules/`):
-- `controller/` - HTTP controllers
+- `controllers/` - HTTP controllers
 - `use-cases/` - Business logic services
 - `dto/` - Data transfer objects
 - `entities/` - Entity definitions
@@ -102,11 +117,45 @@ This is a **pnpm monorepo** using **Turborepo** for orchestration.
 - Import client and types: `import { prisma, User } from '@workspace/database'`
 - Generated Prisma client in `generated/prisma/` (gitignored, run `db:generate`)
 
-**Authentication**: Uses `better-auth` with `@thallesp/nestjs-better-auth` integration.
+**Authentication** (`apps/api/src/infra/auth/` and `apps/api/src/modules/auth/`):
+- Custom JWT-based authentication with Passport.js
+- RS256 algorithm with RSA key pairs
+- Access token (15min) + Refresh token (7 days) stored in httpOnly cookies
+- CSRF protection for mutating requests
+- Google OAuth integration
+
+Key endpoints:
+- `POST /sessions` - Login with email/password
+- `DELETE /sessions` - Logout
+- `POST /auth/refresh` - Refresh access token
+- `GET /auth/google/url` - Get Google OAuth URL
+- `POST /auth/google/callback` - Handle OAuth callback
+- `GET /me` - Get current user (protected)
+
+**Frontend Authentication** (`apps/web/`):
+- `hooks/use-session.ts` - Session management with React Query
+- `hooks/use-login.ts` - Login mutation
+- `lib/api.ts` - HTTP client with automatic token refresh and CSRF handling
+
+**User Roles**:
+- `ADMIN` - Clinic administrator (can manage subscription, billing)
+- `USER` - Regular staff (receptionist, etc.)
 
 ## Environment Variables
 
-The API requires `DATABASE_URL` for PostgreSQL connection. Default docker-compose database URL:
-```
+The API requires these environment variables:
+
+```env
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/db
+JWT_PRIVATE_KEY=<RSA private key base64>
+JWT_PUBLIC_KEY=<RSA public key base64>
+GOOGLE_CLIENT_ID=<Google OAuth client ID>
+GOOGLE_CLIENT_SECRET=<Google OAuth client secret>
+FRONTEND_URL=http://localhost:3000
+```
+
+The Web app requires:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3333
 ```

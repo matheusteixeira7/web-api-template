@@ -21,6 +21,7 @@ async function bootstrap() {
   app.enableCors({
     origin: process.env.FRONTEND_URL || (isDevelopment && 'http://localhost:3000'),
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   });
 
   await app.listen(3333, '0.0.0.0');

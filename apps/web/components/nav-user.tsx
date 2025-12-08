@@ -1,10 +1,9 @@
 "use client"
 
 import {
-    IconCreditCard,
+    IconBell,
     IconDotsVertical,
     IconLogout,
-    IconNotification,
     IconUserCircle,
 } from "@tabler/icons-react"
 
@@ -29,6 +28,8 @@ import {
     useSidebar,
 } from "@workspace/ui/components/sidebar"
 
+import { useSession } from "@/hooks/use-session"
+
 export function NavUser({
   user,
 }: {
@@ -39,6 +40,7 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const { signOut } = useSession()
 
   return (
     <SidebarMenu>
@@ -86,21 +88,17 @@ export function NavUser({
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <IconUserCircle />
-                Account
+                Minha Conta
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <IconCreditCard />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconNotification />
-                Notifications
+                <IconBell />
+                Notificações
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={signOut}>
               <IconLogout />
-              Log out
+              Sair
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
