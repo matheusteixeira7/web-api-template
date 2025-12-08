@@ -7,8 +7,9 @@ export class User {
   id: string;
   email: string;
   name: string;
-  password: string;
+  password: string | null;
   role: UserRole;
+  emailVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
@@ -16,13 +17,14 @@ export class User {
   constructor(
     data: WithOptional<
       User,
-      'id' | 'createdAt' | 'updatedAt' | 'deletedAt' | 'role'
+      'id' | 'createdAt' | 'updatedAt' | 'deletedAt' | 'role' | 'emailVerified'
     >,
   ) {
     Object.assign(this, {
       ...data,
       id: data.id ? data.id : randomUUID(),
       role: data.role || 'USER',
+      emailVerified: data.emailVerified || false,
       createdAt: data.createdAt || new Date(),
       updatedAt: data.updatedAt || new Date(),
       deletedAt: data.deletedAt,

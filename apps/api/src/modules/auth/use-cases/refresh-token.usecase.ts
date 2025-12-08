@@ -1,8 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { Encrypter } from '@/shared/cryptography/encrypter';
-import { UsersRepository } from '@/modules/users/repositories/users.repository';
-import { RefreshTokensRepository } from '../repositories/refresh-tokens.repository';
+import { UnauthorizedException } from '@nestjs/common';
 import { randomUUID } from 'crypto';
+import type { Encrypter } from '@/shared/cryptography/encrypter';
+import type { UsersRepository } from '@/modules/users/repositories/users.repository';
+import type { RefreshTokensRepository } from '../repositories/refresh-tokens.repository';
 
 interface RefreshTokenRequest {
   refreshToken: string;
@@ -13,12 +13,11 @@ interface RefreshTokenResponse {
   refreshToken: string;
 }
 
-@Injectable()
 export class RefreshTokenUseCase {
   constructor(
-    private refreshTokensRepository: RefreshTokensRepository,
-    private usersRepository: UsersRepository,
-    private encrypter: Encrypter,
+    private readonly refreshTokensRepository: RefreshTokensRepository,
+    private readonly usersRepository: UsersRepository,
+    private readonly encrypter: Encrypter,
   ) {}
 
   async execute({

@@ -1,8 +1,7 @@
-import { Injectable } from '@nestjs/common';
-import { HashGenerator } from '@/shared/cryptography/hash-generator';
 import { User } from '@/modules/users/entities/user.entity';
-import { UsersRepository } from '@/modules/users/repositories/users.repository';
-import { UserAlreadyExistsError } from '../errors/user-already-exists.error';
+import type { UsersRepository } from '@/modules/users/repositories/users.repository';
+import type { HashGenerator } from '@/shared/cryptography/hash-generator';
+import { UserAlreadyExistsError } from './errors/user-already-exists.error';
 
 interface RegisterUserRequest {
   name: string;
@@ -10,11 +9,10 @@ interface RegisterUserRequest {
   password: string;
 }
 
-@Injectable()
 export class RegisterUserUseCase {
   constructor(
-    private usersRepository: UsersRepository,
-    private hashGenerator: HashGenerator,
+    private readonly usersRepository: UsersRepository,
+    private readonly hashGenerator: HashGenerator,
   ) {}
 
   async execute({ name, email, password }: RegisterUserRequest): Promise<User> {

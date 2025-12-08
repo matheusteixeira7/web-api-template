@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import { Encrypter } from '@/shared/cryptography/encrypter';
-import { HashComparer } from '@/shared/cryptography/hash-comparer';
-import { UsersRepository } from '@/modules/users/repositories/users.repository';
-import { WrongCredentialsError } from '../errors/wrong-credentials.error';
+import { randomUUID } from 'crypto';
+import type { UsersRepository } from '@/modules/users/repositories/users.repository';
+import type { Encrypter } from '@/shared/cryptography/encrypter';
+import type { HashComparer } from '@/shared/cryptography/hash-comparer';
+import type { RefreshTokensRepository } from '../repositories/refresh-tokens.repository';
+import { WrongCredentialsError } from './errors/wrong-credentials.error';
 
 interface AuthenticateUserRequest {
   email: string;
@@ -11,15 +12,16 @@ interface AuthenticateUserRequest {
 
 interface AuthenticateUserResponse {
   accessToken: string;
+  refreshToken: string;
   userId: string;
 }
 
-@Injectable()
 export class AuthenticateUserUseCase {
   constructor(
-    private usersRepository: UsersRepository,
-    private hashComparer: HashComparer,
-    private encrypter: Encrypter,
+    private readonly usersRepository: UsersRepository,
+    private readonly hashComparer: HashComparer,
+    private readonly encrypter: Encrypter,
+    private readonly refreshTokensRepository: RefreshTokensRepository,
   ) {}
 
   async execute({
@@ -29,6 +31,11 @@ export class AuthenticateUserUseCase {
     const user = await this.usersRepository.findByEmail(email);
 
     if (!user) {
+      throw new WrongCredentialsError();
+    }
+
+    // OAuth users have no password - they cannot authenticate via password
+    if (!user.password) {
       throw new WrongCredentialsError();
     }
 
@@ -46,6 +53,17 @@ export class AuthenticateUserUseCase {
       role: user.role,
     });
 
-    return { accessToken, userId: user.id };
+    // Generate refresh token
+    const refreshToken = randomUUID();
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days
+
+    await this.refreshTokensRepository.create({
+      token: refreshToken,
+      userId: user.id,
+      expiresAt,
+    });
+
+    return { accessToken, refreshToken, userId: user.id };
   }
 }

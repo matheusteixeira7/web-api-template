@@ -39,6 +39,7 @@ export class PrismaUsersRepository extends UsersRepository {
         name: data.name,
         password: data.password,
         role: data.role,
+        emailVerified: data.emailVerified,
       },
     });
 
@@ -55,6 +56,7 @@ export class PrismaUsersRepository extends UsersRepository {
         name: user.name,
         password: user.password,
         role: user.role,
+        emailVerified: user.emailVerified,
       },
     });
 
@@ -68,6 +70,7 @@ export class PrismaUsersRepository extends UsersRepository {
       name: user.name || '',
       password: user.password,
       role: user.role,
+      emailVerified: user.emailVerified,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
       deletedAt: user.deletedAt,

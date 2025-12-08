@@ -1,12 +1,12 @@
 import { Controller, Delete, Req, Res } from '@nestjs/common';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { Public } from '@/infra/auth/public';
-import { RefreshTokensRepository } from '../repositories/refresh-tokens.repository';
+import { LogoutUseCase } from '../use-cases/logout.usecase';
 
 @Controller('/sessions')
 @Public()
 export class LogoutController {
-  constructor(private refreshTokensRepository: RefreshTokensRepository) {}
+  constructor(private logoutUseCase: LogoutUseCase) {}
 
   @Delete()
   async handle(
@@ -15,13 +15,7 @@ export class LogoutController {
   ) {
     const refreshToken = request.cookies['refresh_token'];
 
-    if (refreshToken) {
-      try {
-        await this.refreshTokensRepository.deleteByToken(refreshToken);
-      } catch {
-        // Ignore errors when deleting token
-      }
-    }
+    await this.logoutUseCase.execute({ refreshToken });
 
     // Clear cookies
     response.clearCookie('access_token', { path: '/' });
