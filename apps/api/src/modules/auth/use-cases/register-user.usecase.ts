@@ -1,3 +1,4 @@
+import { prisma } from '@workspace/database';
 import { User } from '@/modules/users/entities/user.entity';
 import type { UsersRepository } from '@/modules/users/repositories/users.repository';
 import type { HashGenerator } from '@/shared/cryptography/hash-generator';
@@ -24,13 +25,31 @@ export class RegisterUserUseCase {
 
     const hashedPassword = await this.hashGenerator.hash(password);
 
-    const user = new User({
-      name,
-      email,
-      password: hashedPassword,
-      role: 'USER',
+    // Create clinic and user atomically in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Create placeholder clinic
+      const clinic = await tx.clinic.create({
+        data: {
+          name: 'Nova Clínica',
+          isSetupComplete: false,
+        },
+      });
+
+      // 2. Create user linked to clinic as ADMIN (first user)
+      const user = await tx.user.create({
+        data: {
+          name,
+          email,
+          password: hashedPassword,
+          clinicId: clinic.id,
+          role: 'ADMIN',
+          emailVerified: false,
+        },
+      });
+
+      return user;
     });
 
-    return this.usersRepository.create(user);
+    return this.usersRepository.mapToEntity(result);
   }
 }

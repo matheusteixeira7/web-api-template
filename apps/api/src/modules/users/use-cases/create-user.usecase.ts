@@ -14,11 +14,13 @@ export class CreateUserUseCase {
     email,
     name,
     password,
+    clinicId,
   }: CreateUserInputDto): Promise<CreateUserResponseDto> {
     const userEntity = new User({
       email,
       name,
       password,
+      clinicId,
     });
 
     const createdUser = await this.usersRepository.create(userEntity);

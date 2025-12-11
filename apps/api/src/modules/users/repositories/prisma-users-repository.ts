@@ -36,6 +36,7 @@ export class PrismaUsersRepository extends UsersRepository {
       data: {
         id: data.id,
         email: data.email,
+        clinicId: data.clinicId,
         name: data.name,
         password: data.password,
         role: data.role,
@@ -53,6 +54,7 @@ export class PrismaUsersRepository extends UsersRepository {
       },
       data: {
         email: user.email,
+        clinicId: user.clinicId,
         name: user.name,
         password: user.password,
         role: user.role,
@@ -67,6 +69,7 @@ export class PrismaUsersRepository extends UsersRepository {
     return new User({
       id: user.id,
       email: user.email,
+      clinicId: user.clinicId,
       name: user.name || '',
       password: user.password,
       role: user.role,

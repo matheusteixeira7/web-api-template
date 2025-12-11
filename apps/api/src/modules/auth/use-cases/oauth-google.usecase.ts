@@ -87,21 +87,38 @@ export class OAuthGoogleUseCase {
         });
       }
     } else {
-      // Create new user with OAuth account
-      user = await prisma.user.create({
-        data: {
-          email: googleUser.email,
-          name: googleUser.name ?? null,
-          emailVerified: true,
-          oauthAccounts: {
-            create: {
-              provider: 'google',
-              providerId: googleUser.id,
+      // Create new user with OAuth account + clinic
+      const result = await prisma.$transaction(async (tx) => {
+        // 1. Create placeholder clinic
+        const clinic = await tx.clinic.create({
+          data: {
+            name: 'Nova Clínica',
+            isSetupComplete: false,
+          },
+        });
+
+        // 2. Create user linked to clinic as ADMIN (first user)
+        const newUser = await tx.user.create({
+          data: {
+            email: googleUser.email,
+            name: googleUser.name ?? null,
+            emailVerified: true,
+            clinicId: clinic.id,
+            role: 'ADMIN',
+            oauthAccounts: {
+              create: {
+                provider: 'google',
+                providerId: googleUser.id,
+              },
             },
           },
-        },
-        include: { oauthAccounts: true },
+          include: { oauthAccounts: true },
+        });
+
+        return newUser;
       });
+
+      user = result;
     }
 
     // Generate tokens

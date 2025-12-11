@@ -28,7 +28,7 @@ export function middleware(request: NextRequest) {
   );
 
   // If user is authenticated and trying to access auth routes (login/register),
-  // redirect to dashboard
+  // redirect to dashboard (the (app) layout will handle setup verification)
   if (isAuthenticated && isAuthRoute) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }

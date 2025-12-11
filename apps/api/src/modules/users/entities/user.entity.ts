@@ -6,6 +6,7 @@ export type UserRole = 'USER' | 'ADMIN';
 export class User {
   id: string;
   email: string;
+  clinicId: string;
   name: string;
   password: string | null;
   role: UserRole;

@@ -1,3 +1,4 @@
+import { User as PrismaUser } from '@workspace/database';
 import { User } from '../entities/user.entity';
 
 export abstract class UsersRepository {
@@ -5,4 +6,5 @@ export abstract class UsersRepository {
   abstract findByEmail(email: string): Promise<User | null>;
   abstract create(data: User): Promise<User>;
   abstract save(user: User): Promise<User>;
+  abstract mapToEntity(user: PrismaUser): User;
 }

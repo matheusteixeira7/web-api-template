@@ -4,6 +4,7 @@ import { InfraAuthModule } from './infra/auth/auth.module';
 import { envSchema } from './infra/env/env';
 import { EnvModule } from './infra/env/env.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { ClinicsModule } from './modules/clinics/clinics.module';
 import { UsersModule } from './modules/users/users.module';
 
 @Module({
@@ -15,6 +16,7 @@ import { UsersModule } from './modules/users/users.module';
     EnvModule,
     InfraAuthModule,
     AuthModule,
+    ClinicsModule,
     UsersModule,
   ],
 })

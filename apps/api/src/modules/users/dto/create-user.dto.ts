@@ -5,6 +5,7 @@ export const createUserSchema = z.object({
   email: z.string().email(),
   name: z.string().min(1),
   password: z.string().min(6),
+  clinicId: z.string().uuid(),
 });
 
 export type CreateUserInputDto = z.infer<typeof createUserSchema>;
