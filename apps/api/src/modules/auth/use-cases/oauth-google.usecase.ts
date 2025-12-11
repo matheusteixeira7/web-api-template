@@ -1,3 +1,5 @@
+import type { ClinicsRepository } from '@/modules/clinics/repositories/clinics.repository';
+import { CLINIC_DEFAULTS } from '@/shared/constants/clinic.constants';
 import type { Encrypter } from '@/shared/cryptography/encrypter';
 import { UnauthorizedException } from '@nestjs/common';
 import { prisma } from '@workspace/database';
@@ -42,6 +44,7 @@ interface OAuthGoogleConfig {
 export class OAuthGoogleUseCase {
   constructor(
     private readonly encrypter: Encrypter,
+    private readonly clinicsRepository: ClinicsRepository,
     private readonly config: OAuthGoogleConfig,
   ) {}
 
@@ -87,38 +90,34 @@ export class OAuthGoogleUseCase {
         });
       }
     } else {
-      // Create new user with OAuth account + clinic
-      const result = await prisma.$transaction(async (tx) => {
-        // 1. Create placeholder clinic
-        const clinic = await tx.clinic.create({
-          data: {
-            name: 'Nova Clínica',
-            isSetupComplete: false,
-          },
-        });
+      // Create new user with clinic via repository
+      const newUser = await this.clinicsRepository.createWithFirstUser(
+        { name: CLINIC_DEFAULTS.NAME },
+        {
+          name: googleUser.name ?? '',
+          email: googleUser.email,
+          password: null,
+          emailVerified: true,
+        },
+      );
 
-        // 2. Create user linked to clinic as ADMIN (first user)
-        const newUser = await tx.user.create({
-          data: {
-            email: googleUser.email,
-            name: googleUser.name ?? null,
-            emailVerified: true,
-            clinicId: clinic.id,
-            role: 'ADMIN',
-            oauthAccounts: {
-              create: {
-                provider: 'google',
-                providerId: googleUser.id,
-              },
-            },
-          },
-          include: { oauthAccounts: true },
-        });
-
-        return newUser;
+      // Create OAuth account linking
+      await prisma.oAuthAccount.create({
+        data: {
+          provider: 'google',
+          providerId: googleUser.id,
+          userId: newUser.id,
+        },
       });
 
-      user = result;
+      user = {
+        id: newUser.id,
+        email: newUser.email,
+        name: newUser.name,
+        role: newUser.role,
+        emailVerified: newUser.emailVerified,
+        oauthAccounts: [],
+      } as any;
     }
 
     // Generate tokens

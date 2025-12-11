@@ -24,4 +24,19 @@ export class FindUserUseCase {
       user: userWithoutPassword,
     };
   }
+
+  async executeWithClinic({ userId }: FindUserInputDto) {
+    const user = await this.usersRepository.findByIdWithClinic(userId);
+
+    if (!user) {
+      throw new ResourceNotFoundError();
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...userWithoutPassword } = user;
+
+    return {
+      user: userWithoutPassword,
+    };
+  }
 }

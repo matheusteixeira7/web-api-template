@@ -1,8 +1,10 @@
 import { CurrentUser } from '@/infra/auth/current-user-decorator';
 import type { UserPayload } from '@/infra/auth/jwt.strategy';
+import { Roles } from '@/infra/auth/roles.decorator';
+import { RolesGuard } from '@/infra/auth/roles.guard';
 import { ResourceNotFoundError } from '@/shared/errors/resource-not-found-error';
 import { ZodValidationPipe } from '@/shared/pipes/zod-validation.pipe';
-import { Body, Controller, HttpCode, Patch, UsePipes } from '@nestjs/common';
+import { Body, Controller, HttpCode, Patch, UseGuards } from '@nestjs/common';
 import { prisma } from '@workspace/database';
 import { z } from 'zod';
 import { UpdateClinicSetupUseCase } from '../use-cases/update-clinic-setup.usecase';
@@ -25,14 +27,17 @@ const updateClinicSetupBodySchema = z.object({
 type UpdateClinicSetupBody = z.infer<typeof updateClinicSetupBodySchema>;
 
 @Controller('/clinics/setup')
+@UseGuards(RolesGuard)
 export class UpdateClinicSetupController {
   constructor(private updateClinicSetup: UpdateClinicSetupUseCase) {}
 
   @Patch()
+  @Roles('ADMIN')
   @HttpCode(200)
   async handle(
     @CurrentUser() user: UserPayload,
-    @Body(new ZodValidationPipe(updateClinicSetupBodySchema)) body: UpdateClinicSetupBody,
+    @Body(new ZodValidationPipe(updateClinicSetupBodySchema))
+    body: UpdateClinicSetupBody,
   ) {
     const {
       name,

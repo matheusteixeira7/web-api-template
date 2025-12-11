@@ -1,4 +1,5 @@
 import type { WithOptional } from '@/shared/core/default.entity';
+import type { BusinessHours } from '@/shared/types/business-hours.type';
 import { randomUUID } from 'crypto';
 
 export class Clinic {
@@ -6,7 +7,7 @@ export class Clinic {
   name: string;
   contactEmail: string | null;
   contactPhone: string | null;
-  businessHours: object | null;
+  businessHours: BusinessHours | null;
   timezone: string | null;
   averageAppointmentValue: number | null;
   subscriptionId: string | null;

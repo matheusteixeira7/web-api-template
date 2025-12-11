@@ -1,4 +1,5 @@
 import { ResourceNotFoundError } from '@/shared/errors/resource-not-found-error';
+import type { BusinessHours } from '@/shared/types/business-hours.type';
 import { ForbiddenException } from '@nestjs/common';
 import { prisma } from '@workspace/database';
 import type {
@@ -51,7 +52,7 @@ export class UpdateClinicSetupUseCase {
     clinic.name = name;
     clinic.contactPhone = contactPhone;
     clinic.contactEmail = contactEmail ?? null;
-    clinic.businessHours = businessHours;
+    clinic.businessHours = businessHours as BusinessHours;
     clinic.timezone = timezone;
     clinic.averageAppointmentValue = averageAppointmentValue ?? null;
     clinic.isSetupComplete = true;

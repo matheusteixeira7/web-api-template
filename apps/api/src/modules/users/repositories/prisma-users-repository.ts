@@ -1,6 +1,6 @@
 import { prisma, User as PrismaUser } from '@workspace/database';
 import { User } from '../entities/user.entity';
-import { UsersRepository } from './users.repository';
+import { UsersRepository, type UserWithClinicStatus } from './users.repository';
 
 export class PrismaUsersRepository extends UsersRepository {
   async findById(id: string): Promise<User | null> {
@@ -29,6 +29,27 @@ export class PrismaUsersRepository extends UsersRepository {
     }
 
     return this.mapToEntity(user);
+  }
+
+  async findByIdWithClinic(id: string): Promise<UserWithClinicStatus | null> {
+    const user = await prisma.user.findUnique({
+      where: { id },
+      include: {
+        clinic: {
+          select: { isSetupComplete: true },
+        },
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    const userEntity = this.mapToEntity(user);
+    return {
+      ...userEntity,
+      isClinicSetupComplete: user.clinic.isSetupComplete,
+    };
   }
 
   async create(data: User): Promise<User> {

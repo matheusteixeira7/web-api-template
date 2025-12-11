@@ -1,4 +1,5 @@
 import { JwtEncrypter } from '@/infra/cryptography/jwt-encrypter';
+import { PrismaClinicsRepository } from '@/modules/clinics/repositories/prisma-clinics-repository';
 import { OAuthGoogleUseCase } from '../oauth-google.usecase';
 import { env } from './config';
 
@@ -8,7 +9,9 @@ export function makeOAuthGoogleUseCase() {
     expiresIn: '15m',
   });
 
-  return new OAuthGoogleUseCase(encrypter, {
+  const clinicsRepository = new PrismaClinicsRepository();
+
+  return new OAuthGoogleUseCase(encrypter, clinicsRepository, {
     googleClientId: env.GOOGLE_CLIENT_ID,
     googleClientSecret: env.GOOGLE_CLIENT_SECRET,
     redirectUri: `${env.FRONTEND_URL}/auth/callback/google`,
