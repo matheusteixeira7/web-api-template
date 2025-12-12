@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle, GalleryVerticalEnd, XCircle } from "lucide-react";
+import { CheckCircle, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -22,6 +22,7 @@ import { Input } from "@workspace/ui/components/input";
 import { cn } from "@workspace/ui/lib/utils";
 
 import { api, ApiError } from "@/lib/api";
+import { IconHeartbeat } from "@tabler/icons-react";
 
 type Status = "form" | "success" | "error";
 
@@ -104,9 +105,9 @@ export default function ResetPasswordPage() {
       <div className="flex w-full max-w-sm flex-col gap-6">
         <a href="#" className="flex items-center gap-2 self-center font-medium">
           <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
-            <GalleryVerticalEnd className="size-4" />
+            <IconHeartbeat className="!size-5" />
           </div>
-          Acme Inc.
+          Healthsync
         </a>
 
         <div className={cn("flex flex-col gap-6")}>

@@ -11,6 +11,8 @@ interface User {
   email: string;
   name: string | null;
   role: "USER" | "ADMIN";
+  clinicId: string;
+  isClinicSetupComplete: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -58,6 +60,7 @@ export function useSession() {
     user: query.data?.user ?? null,
     isLoading: query.isLoading,
     isAuthenticated: !!query.data?.user,
+    needsSetup: query.data?.user && !query.data.user.isClinicSetupComplete,
     error: query.error,
     signOut,
     refetch: query.refetch,

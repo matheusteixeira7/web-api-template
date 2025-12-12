@@ -1,20 +1,23 @@
+import { PrismaService } from '@/infra/database/prisma.service';
+import { MailService } from '@/infra/mail/mail.service';
+import { UsersApi } from '@/shared/public-api/interface/users-api.interface';
+import { Inject, Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
-import { prisma } from '@workspace/database';
-import type { MailService } from '@/infra/mail/mail.service';
-import type { UsersRepository } from '@/modules/users/repositories/users.repository';
 
 interface ForgotPasswordRequest {
   email: string;
 }
 
+@Injectable()
 export class ForgotPasswordUseCase {
   constructor(
-    private readonly usersRepository: UsersRepository,
+    @Inject(UsersApi) private readonly usersApi: UsersApi,
     private readonly mailService: MailService,
+    private readonly prisma: PrismaService,
   ) {}
 
   async execute({ email }: ForgotPasswordRequest): Promise<void> {
-    const user = await this.usersRepository.findByEmail(email);
+    const user = await this.usersApi.findByEmail(email);
 
     // Don't reveal if user exists or not
     if (!user) {
@@ -22,7 +25,7 @@ export class ForgotPasswordUseCase {
     }
 
     // Delete existing tokens for this user
-    await prisma.passwordResetToken.deleteMany({
+    await this.prisma.client.passwordResetToken.deleteMany({
       where: { userId: user.id },
     });
 
@@ -31,7 +34,7 @@ export class ForgotPasswordUseCase {
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + 1); // 1 hour
 
-    await prisma.passwordResetToken.create({
+    await this.prisma.client.passwordResetToken.create({
       data: {
         token,
         userId: user.id,

@@ -9,7 +9,9 @@ export class GetCurrentUserController {
 
   @Get()
   async handle(@CurrentUser() currentUser: UserPayload) {
-    const { user } = await this.findUser.execute({ userId: currentUser.sub });
+    const { user } = await this.findUser.executeWithClinic({
+      userId: currentUser.sub,
+    });
 
     return { user };
   }

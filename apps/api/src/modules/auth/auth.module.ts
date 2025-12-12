@@ -1,4 +1,9 @@
+import { ApplicationModule } from '@/application/application.module';
+import { CryptographyModule } from '@/infra/cryptography/cryptography.module';
+import { DatabaseModule } from '@/infra/database/database.module';
 import { EnvModule } from '@/infra/env/env.module';
+import { MailModule } from '@/infra/mail/mail.module';
+import { UsersModule } from '@/modules/users/users.module';
 import { Module } from '@nestjs/common';
 
 // Controllers
@@ -23,19 +28,30 @@ import { ResetPasswordUseCase } from './use-cases/reset-password.usecase';
 import { SendVerificationEmailUseCase } from './use-cases/send-verification-email.usecase';
 import { VerifyEmailUseCase } from './use-cases/verify-email.usecase';
 
-// Factories
-import { makeAuthenticateUserUseCase } from './use-cases/factories/make-authenticate-user-use-case.factory';
-import { makeForgotPasswordUseCase } from './use-cases/factories/make-forgot-password-use-case.factory';
-import { makeLogoutUseCase } from './use-cases/factories/make-logout-use-case.factory';
-import { makeOAuthGoogleUseCase } from './use-cases/factories/make-oauth-google-use-case.factory';
-import { makeRefreshTokenUseCase } from './use-cases/factories/make-refresh-token-use-case.factory';
-import { makeRegisterUserUseCase } from './use-cases/factories/make-register-user-use-case.factory';
-import { makeResetPasswordUseCase } from './use-cases/factories/make-reset-password-use-case.factory';
-import { makeSendVerificationEmailUseCase } from './use-cases/factories/make-send-verification-email-use-case.factory';
-import { makeVerifyEmailUseCase } from './use-cases/factories/make-verify-email-use-case.factory';
+// Repositories
+import { PrismaRefreshTokensRepository } from './repositories/prisma-refresh-tokens.repository';
+import { RefreshTokensRepository } from './repositories/refresh-tokens.repository';
 
+/**
+ * AuthModule - Authentication domain module
+ *
+ * This module follows Clean Architecture with Facade Pattern:
+ * - Uses NestJS DI (no manual factories)
+ * - Imports UsersModule to get UsersApi facade
+ * - Imports ApplicationModule for RegisterUserApplicationService
+ * - Imports CryptographyModule for HashGenerator and Encrypter
+ * - Imports MailModule for MailService
+ * - Manages its own RefreshTokens repository (internal to auth)
+ */
 @Module({
-  imports: [EnvModule],
+  imports: [
+    EnvModule,
+    DatabaseModule,
+    CryptographyModule, // ✅ Infra providers (HashGenerator, Encrypter)
+    MailModule, // ✅ Infra provider (MailService)
+    ApplicationModule, // ✅ Application services (RegisterUserApplicationService)
+    UsersModule, // ✅ UsersApi facade
+  ],
   controllers: [
     CreateAccountController,
     AuthenticateController,
@@ -48,42 +64,22 @@ import { makeVerifyEmailUseCase } from './use-cases/factories/make-verify-email-
     OAuthGoogleController,
   ],
   providers: [
+    // Repository binding (internal to auth module)
     {
-      provide: RegisterUserUseCase,
-      useFactory: makeRegisterUserUseCase,
+      provide: RefreshTokensRepository,
+      useClass: PrismaRefreshTokensRepository,
     },
-    {
-      provide: AuthenticateUserUseCase,
-      useFactory: makeAuthenticateUserUseCase,
-    },
-    {
-      provide: RefreshTokenUseCase,
-      useFactory: makeRefreshTokenUseCase,
-    },
-    {
-      provide: LogoutUseCase,
-      useFactory: makeLogoutUseCase,
-    },
-    {
-      provide: SendVerificationEmailUseCase,
-      useFactory: makeSendVerificationEmailUseCase,
-    },
-    {
-      provide: VerifyEmailUseCase,
-      useFactory: makeVerifyEmailUseCase,
-    },
-    {
-      provide: ForgotPasswordUseCase,
-      useFactory: makeForgotPasswordUseCase,
-    },
-    {
-      provide: ResetPasswordUseCase,
-      useFactory: makeResetPasswordUseCase,
-    },
-    {
-      provide: OAuthGoogleUseCase,
-      useFactory: makeOAuthGoogleUseCase,
-    },
+
+    // Use cases - all @Injectable, injected by NestJS
+    RegisterUserUseCase,
+    AuthenticateUserUseCase,
+    RefreshTokenUseCase,
+    LogoutUseCase,
+    SendVerificationEmailUseCase,
+    VerifyEmailUseCase,
+    ForgotPasswordUseCase,
+    ResetPasswordUseCase,
+    OAuthGoogleUseCase,
   ],
 })
 export class AuthModule {}

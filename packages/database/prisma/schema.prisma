@@ -15,6 +15,8 @@ enum UserRole {
 model User {
   id            String    @id @default(uuid())
   email         String    @unique
+  clinicId      String    @map("clinic_id")
+  clinic        Clinic    @relation(fields: [clinicId], references: [id])
   name          String?
   password      String?
   role          UserRole  @default(USER)
@@ -29,6 +31,24 @@ model User {
   oauthAccounts       OAuthAccount[]
 
   @@map("users")
+}
+
+model Clinic {
+  id                      String    @id @default(uuid())
+  name                    String    @map("name")
+  contactEmail            String?   @map("contact_email")
+  contactPhone            String?   @map("contact_phone")
+  businessHours           Json?     @map("business_hours")
+  timezone                String?   @map("timezone")
+  averageAppointmentValue Decimal?  @map("average_appointment_value")
+  subscriptionId          String?   @map("subscription_id")
+  isSetupComplete         Boolean   @default(false) @map("is_setup_complete")
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
+  deletedAt               DateTime? @map("deleted_at")
+  users                   User[]
+
+  @@map("clinics")
 }
 
 model RefreshToken {

@@ -1,9 +1,11 @@
-import type { RefreshTokensRepository } from '../repositories/refresh-tokens.repository';
+import { Injectable } from '@nestjs/common'
+import { RefreshTokensRepository } from '../repositories/refresh-tokens.repository';
 
 interface LogoutRequest {
   refreshToken: string | undefined;
 }
 
+@Injectable()
 export class LogoutUseCase {
   constructor(
     private readonly refreshTokensRepository: RefreshTokensRepository,

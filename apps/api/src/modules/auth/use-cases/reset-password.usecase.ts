@@ -1,17 +1,23 @@
-import { BadRequestException } from '@nestjs/common';
-import { prisma } from '@workspace/database';
-import type { HashGenerator } from '@/shared/cryptography/hash-generator';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { PrismaService } from '@/infra/database/prisma.service'
+import { UsersApi } from '@/shared/public-api/interface/users-api.interface'
+import { HashGenerator } from '@/shared/cryptography/hash-generator';
 
 interface ResetPasswordRequest {
   token: string;
   password: string;
 }
 
+@Injectable()
 export class ResetPasswordUseCase {
-  constructor(private readonly hashGenerator: HashGenerator) {}
+  constructor(
+    private readonly hashGenerator: HashGenerator,
+    @Inject(UsersApi) private readonly usersApi: UsersApi,
+    private readonly prisma: PrismaService,
+  ) {}
 
   async execute({ token, password }: ResetPasswordRequest): Promise<void> {
-    const resetToken = await prisma.passwordResetToken.findUnique({
+    const resetToken = await this.prisma.client.passwordResetToken.findUnique({
       where: { token },
     });
 
@@ -20,7 +26,7 @@ export class ResetPasswordUseCase {
     }
 
     if (resetToken.expiresAt < new Date()) {
-      await prisma.passwordResetToken.delete({ where: { token } });
+      await this.prisma.client.passwordResetToken.delete({ where: { token } });
       throw new BadRequestException('Reset token expired');
     }
 
@@ -31,18 +37,17 @@ export class ResetPasswordUseCase {
     // Hash new password
     const hashedPassword = await this.hashGenerator.hash(password);
 
-    // Update password and mark token as used
-    await prisma.$transaction([
-      prisma.user.update({
-        where: { id: resetToken.userId },
-        data: { password: hashedPassword },
-      }),
-      prisma.passwordResetToken.update({
+    // Update password via facade
+    await this.usersApi.updatePassword(resetToken.userId, hashedPassword);
+
+    // Mark token as used and invalidate refresh tokens
+    await this.prisma.client.$transaction([
+      this.prisma.client.passwordResetToken.update({
         where: { token },
         data: { usedAt: new Date() },
       }),
       // Invalidate all refresh tokens for security
-      prisma.refreshToken.deleteMany({
+      this.prisma.client.refreshToken.deleteMany({
         where: { userId: resetToken.userId },
       }),
     ]);
