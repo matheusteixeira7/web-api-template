@@ -1,8 +1,8 @@
-import { UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { randomUUID } from 'crypto';
-import type { Encrypter } from '@/shared/cryptography/encrypter';
-import type { UsersRepository } from '@/modules/users/repositories/users.repository';
-import type { RefreshTokensRepository } from '../repositories/refresh-tokens.repository';
+import { UsersApi } from '@/shared/public-api/interface/users-api.interface'
+import { Encrypter } from '@/shared/cryptography/encrypter';
+import { RefreshTokensRepository } from '../repositories/refresh-tokens.repository';
 
 interface RefreshTokenRequest {
   refreshToken: string;
@@ -13,10 +13,11 @@ interface RefreshTokenResponse {
   refreshToken: string;
 }
 
+@Injectable()
 export class RefreshTokenUseCase {
   constructor(
     private readonly refreshTokensRepository: RefreshTokensRepository,
-    private readonly usersRepository: UsersRepository,
+    @Inject(UsersApi) private readonly usersApi: UsersApi,
     private readonly encrypter: Encrypter,
   ) {}
 
@@ -35,7 +36,7 @@ export class RefreshTokenUseCase {
       throw new UnauthorizedException('Refresh token expired');
     }
 
-    const user = await this.usersRepository.findById(storedToken.userId);
+    const user = await this.usersApi.findById(storedToken.userId);
 
     if (!user) {
       await this.refreshTokensRepository.deleteByToken(refreshToken);

@@ -1,14 +1,16 @@
+import type { CreateUserData } from '@/shared/public-api/interface/users-api.interface';
+import { Injectable } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 import type {
   CreateUserInputDto,
   CreateUserResponseDto,
 } from '../dto/create-user.dto';
 import { User } from '../entities/user.entity';
-import type { UsersRepository } from '../repositories/users.repository';
+import { UsersRepository } from '../repositories/users.repository';
 
+@Injectable()
 export class CreateUserUseCase {
-  constructor(private readonly usersRepository: UsersRepository) {
-    this.usersRepository = usersRepository;
-  }
+  constructor(private readonly usersRepository: UsersRepository) {}
 
   async execute({
     email,
@@ -31,5 +33,29 @@ export class CreateUserUseCase {
     return {
       user: userWithoutPassword,
     };
+  }
+
+  /**
+   * Methods for facade usage
+   */
+  async createUser(data: CreateUserData): Promise<User> {
+    const user = new User({
+      id: randomUUID(),
+      email: data.email,
+      name: data.name,
+      password: data.password,
+      clinicId: data.clinicId,
+      role: data.role,
+      emailVerified: data.emailVerified,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      deletedAt: null,
+    });
+
+    return this.usersRepository.create(user);
+  }
+
+  async updateUser(user: User): Promise<User> {
+    return this.usersRepository.save(user);
   }
 }

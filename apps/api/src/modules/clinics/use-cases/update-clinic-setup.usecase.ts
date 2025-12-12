@@ -1,15 +1,20 @@
 import { ResourceNotFoundError } from '@/shared/errors/resource-not-found-error';
+import { UsersApi } from '@/shared/public-api/interface/users-api.interface';
 import type { BusinessHours } from '@/shared/types/business-hours.type';
-import { ForbiddenException } from '@nestjs/common';
-import { prisma } from '@workspace/database';
+import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
 import type {
   UpdateClinicSetupInputDto,
   UpdateClinicSetupResponseDto,
 } from '../dto/update-clinic-setup.dto';
-import type { ClinicsRepository } from '../repositories/clinics.repository';
+import type { Clinic } from '../entities/clinic.entity';
+import { ClinicsRepository } from '../repositories/clinics.repository';
 
+@Injectable()
 export class UpdateClinicSetupUseCase {
-  constructor(private readonly clinicsRepository: ClinicsRepository) {}
+  constructor(
+    private readonly clinicsRepository: ClinicsRepository,
+    @Inject(UsersApi) private readonly usersApi: UsersApi,
+  ) {}
 
   async execute(
     data: UpdateClinicSetupInputDto,
@@ -26,16 +31,9 @@ export class UpdateClinicSetupUseCase {
     } = data;
 
     // Verify user belongs to the clinic
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { clinicId: true },
-    });
+    const user = await this.usersApi.findById(userId);
 
-    if (!user) {
-      throw new ResourceNotFoundError();
-    }
-
-    if (user.clinicId !== clinicId) {
+    if (!user || user.clinicId !== clinicId) {
       throw new ForbiddenException(
         'User does not have permission to update this clinic',
       );
@@ -63,5 +61,12 @@ export class UpdateClinicSetupUseCase {
     return {
       clinic: updatedClinic,
     };
+  }
+
+  /**
+   * Method for facade usage
+   */
+  async updateClinic(clinic: Clinic): Promise<Clinic> {
+    return this.clinicsRepository.save(clinic);
   }
 }

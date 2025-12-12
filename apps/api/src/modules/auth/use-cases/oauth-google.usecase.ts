@@ -1,9 +1,12 @@
-import type { ClinicsRepository } from '@/modules/clinics/repositories/clinics.repository';
-import { CLINIC_DEFAULTS } from '@/shared/constants/clinic.constants';
-import type { Encrypter } from '@/shared/cryptography/encrypter';
-import { UnauthorizedException } from '@nestjs/common';
-import { prisma } from '@workspace/database';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { randomUUID } from 'crypto';
+import { PrismaService } from '@/infra/database/prisma.service'
+import { UsersApi } from '@/shared/public-api/interface/users-api.interface'
+import { RegisterUserApplicationService } from '@/application/services/register-user-application.service'
+import { CLINIC_DEFAULTS } from '@/shared/constants/clinic.constants';
+import { Encrypter } from '@/shared/cryptography/encrypter';
+import { RefreshTokensRepository } from '../repositories/refresh-tokens.repository';
+import { EnvService } from '@/infra/env/env.service';
 
 interface GoogleTokenResponse {
   access_token: string;
@@ -35,17 +38,15 @@ interface OAuthGoogleResponse {
   };
 }
 
-interface OAuthGoogleConfig {
-  googleClientId: string;
-  googleClientSecret: string;
-  redirectUri: string;
-}
-
+@Injectable()
 export class OAuthGoogleUseCase {
   constructor(
     private readonly encrypter: Encrypter,
-    private readonly clinicsRepository: ClinicsRepository,
-    private readonly config: OAuthGoogleConfig,
+    @Inject(UsersApi) private readonly usersApi: UsersApi,
+    private readonly registerUserAppService: RegisterUserApplicationService,
+    private readonly refreshTokensRepository: RefreshTokensRepository,
+    private readonly prisma: PrismaService,
+    private readonly env: EnvService,
   ) {}
 
   async execute({ code }: OAuthGoogleRequest): Promise<OAuthGoogleResponse> {
@@ -60,7 +61,7 @@ export class OAuthGoogleUseCase {
     }
 
     // Find or create user
-    let user = await prisma.user.findUnique({
+    let user = await this.prisma.client.user.findUnique({
       where: { email: googleUser.email },
       include: { oauthAccounts: true },
     });
@@ -73,7 +74,7 @@ export class OAuthGoogleUseCase {
 
       if (!oauthAccount) {
         // Link Google account to existing user
-        await prisma.oAuthAccount.create({
+        await this.prisma.client.oAuthAccount.create({
           data: {
             provider: 'google',
             providerId: googleUser.id,
@@ -82,27 +83,22 @@ export class OAuthGoogleUseCase {
         });
       }
 
-      // Mark email as verified if not already
+      // Mark email as verified if not already via facade
       if (!user.emailVerified) {
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { emailVerified: true },
-        });
+        await this.usersApi.verifyEmailAddress(user.id);
       }
     } else {
-      // Create new user with clinic via repository
-      const newUser = await this.clinicsRepository.createWithFirstUser(
-        { name: CLINIC_DEFAULTS.NAME },
-        {
-          name: googleUser.name ?? '',
-          email: googleUser.email,
-          password: null,
-          emailVerified: true,
-        },
-      );
+      // Create new user with clinic via Application Service
+      const newUser = await this.registerUserAppService.execute({
+        name: googleUser.name ?? '',
+        email: googleUser.email,
+        hashedPassword: null,
+        emailVerified: true,
+        clinicName: CLINIC_DEFAULTS.NAME,
+      });
 
       // Create OAuth account linking
-      await prisma.oAuthAccount.create({
+      await this.prisma.client.oAuthAccount.create({
         data: {
           provider: 'google',
           providerId: googleUser.id,
@@ -130,12 +126,10 @@ export class OAuthGoogleUseCase {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
 
-    await prisma.refreshToken.create({
-      data: {
-        token: refreshToken,
-        userId: user.id,
-        expiresAt,
-      },
+    await this.refreshTokensRepository.create({
+      token: refreshToken,
+      userId: user.id,
+      expiresAt,
     });
 
     const csrfToken = randomUUID();
@@ -162,9 +156,9 @@ export class OAuthGoogleUseCase {
       },
       body: new URLSearchParams({
         code,
-        client_id: this.config.googleClientId,
-        client_secret: this.config.googleClientSecret,
-        redirect_uri: this.config.redirectUri,
+        client_id: this.env.get('GOOGLE_CLIENT_ID'),
+        client_secret: this.env.get('GOOGLE_CLIENT_SECRET'),
+        redirect_uri: `${this.env.get('FRONTEND_URL')}/auth/callback/google`,
         grant_type: 'authorization_code',
       }),
     });

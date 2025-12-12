@@ -1,8 +1,9 @@
+import { Encrypter } from '@/shared/cryptography/encrypter';
+import { HashComparer } from '@/shared/cryptography/hash-comparer';
+import { UsersApi } from '@/shared/public-api/interface/users-api.interface';
+import { Inject, Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
-import type { UsersRepository } from '@/modules/users/repositories/users.repository';
-import type { Encrypter } from '@/shared/cryptography/encrypter';
-import type { HashComparer } from '@/shared/cryptography/hash-comparer';
-import type { RefreshTokensRepository } from '../repositories/refresh-tokens.repository';
+import { RefreshTokensRepository } from '../repositories/refresh-tokens.repository';
 import { WrongCredentialsError } from './errors/wrong-credentials.error';
 
 interface AuthenticateUserRequest {
@@ -16,9 +17,10 @@ interface AuthenticateUserResponse {
   userId: string;
 }
 
+@Injectable()
 export class AuthenticateUserUseCase {
   constructor(
-    private readonly usersRepository: UsersRepository,
+    @Inject(UsersApi) private readonly usersApi: UsersApi, // ✨ Facade via Symbol token
     private readonly hashComparer: HashComparer,
     private readonly encrypter: Encrypter,
     private readonly refreshTokensRepository: RefreshTokensRepository,
@@ -28,7 +30,7 @@ export class AuthenticateUserUseCase {
     email,
     password,
   }: AuthenticateUserRequest): Promise<AuthenticateUserResponse> {
-    const user = await this.usersRepository.findByEmail(email);
+    const user = await this.usersApi.findByEmail(email);
 
     if (!user) {
       throw new WrongCredentialsError();

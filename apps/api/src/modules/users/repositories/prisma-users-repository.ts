@@ -1,10 +1,17 @@
-import { prisma, User as PrismaUser } from '@workspace/database';
+import { PrismaService } from '@/infra/database/prisma.service';
+import { Injectable } from '@nestjs/common';
+import { User as PrismaUser } from '@workspace/database';
 import { User } from '../entities/user.entity';
 import { UsersRepository, type UserWithClinicStatus } from './users.repository';
 
+@Injectable()
 export class PrismaUsersRepository extends UsersRepository {
+  constructor(private readonly prisma: PrismaService) {
+    super();
+  }
+
   async findById(id: string): Promise<User | null> {
-    const user = await prisma.user.findUnique({
+    const user = await this.prisma.client.user.findUnique({
       where: {
         id,
       },
@@ -18,7 +25,7 @@ export class PrismaUsersRepository extends UsersRepository {
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    const user = await prisma.user.findUnique({
+    const user = await this.prisma.client.user.findUnique({
       where: {
         email,
       },
@@ -32,7 +39,7 @@ export class PrismaUsersRepository extends UsersRepository {
   }
 
   async findByIdWithClinic(id: string): Promise<UserWithClinicStatus | null> {
-    const user = await prisma.user.findUnique({
+    const user = await this.prisma.client.user.findUnique({
       where: { id },
       include: {
         clinic: {
@@ -53,7 +60,7 @@ export class PrismaUsersRepository extends UsersRepository {
   }
 
   async create(data: User): Promise<User> {
-    const createdUser = await prisma.user.create({
+    const createdUser = await this.prisma.client.user.create({
       data: {
         id: data.id,
         email: data.email,
@@ -69,7 +76,7 @@ export class PrismaUsersRepository extends UsersRepository {
   }
 
   async save(user: User): Promise<User> {
-    const updatedUser = await prisma.user.update({
+    const updatedUser = await this.prisma.client.user.update({
       where: {
         id: user.id,
       },
