@@ -9,6 +9,7 @@ import { PrismaClinicsRepository } from './repositories/prisma-clinics-repositor
 import { CreateClinicUseCase } from './use-cases/create-clinic.usecase';
 import { FindClinicUseCase } from './use-cases/find-clinic.usecase';
 import { UpdateClinicSetupUseCase } from './use-cases/update-clinic-setup.usecase';
+import { VerifyUserBelongsToClinicUseCase } from './use-cases/verify-user-belongs-to-clinic.usecase';
 
 /**
  * ClinicsModule - Clinics domain module
@@ -17,7 +18,6 @@ import { UpdateClinicSetupUseCase } from './use-cases/update-clinic-setup.usecas
  * - Exports ONLY ClinicsApi (interface Symbol) - public API
  * - Uses NestJS DI (no manual factories)
  * - Imports UsersModule to get UsersApi (for cross-module authorization)
- * - ClinicsFacade calls UsersApi for verifyUserBelongsToClinic
  */
 @Module({
   imports: [
@@ -33,6 +33,7 @@ import { UpdateClinicSetupUseCase } from './use-cases/update-clinic-setup.usecas
     FindClinicUseCase,
     CreateClinicUseCase,
     UpdateClinicSetupUseCase,
+    VerifyUserBelongsToClinicUseCase,
 
     // Facade binding
     ClinicsFacade,

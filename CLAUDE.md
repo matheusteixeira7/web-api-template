@@ -17,6 +17,13 @@ Key features:
 
 See `docs/business-plan.md` for detailed requirements and user stories.
 
+**IMPORTANT**: Before writing or modifying code, read `docs/ARCHITECTURE.md` for detailed architectural patterns and design principles. Always follow:
+- Facade Pattern for inter-module communication
+- Repository Pattern for data access abstraction
+- Use Case Pattern for business logic (one operation per class)
+- Entity Pattern for domain models
+- Application Service Pattern for cross-module transactional operations
+
 ## Build & Development Commands
 
 ```bash

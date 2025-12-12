@@ -40,20 +40,7 @@ export class UsersFacade implements UsersApi {
   async findByIdWithClinic(
     id: string,
   ): Promise<{ user: User; clinic: { isSetupComplete: boolean } } | null> {
-    const result = await this.findUserUseCase.findByIdWithClinic(id);
-
-    if (!result) {
-      return null;
-    }
-
-    const { isClinicSetupComplete, ...user } = result;
-
-    return {
-      user: new User(user),
-      clinic: {
-        isSetupComplete: isClinicSetupComplete,
-      },
-    };
+    return this.findUserUseCase.findByIdWithClinic(id);
   }
 
   async createUser(data: CreateUserData): Promise<User> {

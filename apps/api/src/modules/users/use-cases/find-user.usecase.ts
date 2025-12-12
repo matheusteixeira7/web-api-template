@@ -4,8 +4,7 @@ import type {
   FindUserInputDto,
   FindUserResponseDto,
 } from '../dto/find-user.dto';
-import type { User } from '../entities/user.entity';
-import type { UserWithClinicStatus } from '../repositories/users.repository';
+import { User } from '../entities/user.entity';
 import { UsersRepository } from '../repositories/users.repository';
 
 @Injectable()
@@ -54,7 +53,22 @@ export class FindUserUseCase {
     return this.usersRepository.findByEmail(email);
   }
 
-  async findByIdWithClinic(id: string): Promise<UserWithClinicStatus | null> {
-    return this.usersRepository.findByIdWithClinic(id);
+  async findByIdWithClinic(
+    id: string,
+  ): Promise<{ user: User; clinic: { isSetupComplete: boolean } } | null> {
+    const result = await this.usersRepository.findByIdWithClinic(id);
+
+    if (!result) {
+      return null;
+    }
+
+    const { isClinicSetupComplete, ...userData } = result;
+
+    return {
+      user: new User(userData),
+      clinic: {
+        isSetupComplete: isClinicSetupComplete,
+      },
+    };
   }
 }
