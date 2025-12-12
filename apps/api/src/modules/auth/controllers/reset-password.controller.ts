@@ -2,11 +2,12 @@ import { Controller, Post, Body, UsePipes } from '@nestjs/common';
 import { z } from 'zod';
 import { Public } from '@/infra/auth/public';
 import { ZodValidationPipe } from '@/shared/pipes/zod-validation.pipe';
+import { passwordSchema } from '@/shared/schemas/password.schema';
 import { ResetPasswordUseCase } from '../use-cases/reset-password.usecase';
 
 const resetPasswordSchema = z.object({
   token: z.string().uuid(),
-  password: z.string().min(6),
+  password: passwordSchema,
 });
 
 type ResetPasswordBody = z.infer<typeof resetPasswordSchema>;

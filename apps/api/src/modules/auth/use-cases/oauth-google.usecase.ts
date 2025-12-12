@@ -1,12 +1,12 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
-import { randomUUID } from 'crypto';
-import { PrismaService } from '@/infra/database/prisma.service'
-import { UsersApi } from '@/shared/public-api/interface/users-api.interface'
-import { RegisterUserApplicationService } from '@/application/services/register-user-application.service'
+import { RegisterUserApplicationService } from '@/application/services/register-user-application.service';
+import { PrismaService } from '@/infra/database/prisma.service';
+import { EnvService } from '@/infra/env/env.service';
 import { CLINIC_DEFAULTS } from '@/shared/constants/clinic.constants';
 import { Encrypter } from '@/shared/cryptography/encrypter';
+import { UsersApi } from '@/shared/public-api/interface/users-api.interface';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { randomUUID } from 'crypto';
 import { RefreshTokensRepository } from '../repositories/refresh-tokens.repository';
-import { EnvService } from '@/infra/env/env.service';
 
 interface GoogleTokenResponse {
   access_token: string;
@@ -63,7 +63,11 @@ export class OAuthGoogleUseCase {
     // Find or create user
     let user = await this.prisma.client.user.findUnique({
       where: { email: googleUser.email },
-      include: { oauthAccounts: true },
+      include: {
+        oauthAccounts: {
+          where: { provider: 'google' },
+        },
+      },
     });
 
     if (user) {

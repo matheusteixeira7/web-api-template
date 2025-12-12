@@ -4,6 +4,7 @@ import { ApplicationModule } from './application/application.module';
 import { InfraAuthModule } from './infra/auth/auth.module';
 import { CryptographyModule } from './infra/cryptography/cryptography.module';
 import { DatabaseModule } from './infra/database/database.module';
+import { MailModule } from './infra/mail/mail.module';
 import { envSchema } from './infra/env/env';
 import { EnvModule } from './infra/env/env.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -19,6 +20,7 @@ import { UsersModule } from './modules/users/users.module';
     EnvModule,
     DatabaseModule,
     CryptographyModule,
+    MailModule,
     ApplicationModule,
     InfraAuthModule,
     AuthModule,

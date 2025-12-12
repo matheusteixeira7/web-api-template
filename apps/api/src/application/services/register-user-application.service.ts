@@ -66,7 +66,7 @@ export class RegisterUserApplicationService {
 export interface RegisterUserInput {
   name: string;
   email: string;
-  hashedPassword: string;
+  hashedPassword: string | null;
   emailVerified: boolean;
   clinicName: string;
 }
