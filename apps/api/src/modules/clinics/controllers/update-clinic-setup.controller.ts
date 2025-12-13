@@ -2,40 +2,54 @@ import { CurrentUser } from '@/infra/auth/current-user-decorator';
 import type { UserPayload } from '@/infra/auth/jwt.strategy';
 import { Roles } from '@/infra/auth/roles.decorator';
 import { ResourceNotFoundError } from '@/shared/errors/resource-not-found-error';
+import { UserRole } from '@/shared/types/user-role.enum';
 import { ZodValidationPipe } from '@/shared/pipes/zod-validation.pipe';
 import { Body, Controller, HttpCode, Patch } from '@nestjs/common';
 import { prisma } from '@workspace/database';
-import { z } from 'zod';
+import {
+  updateClinicSetupBodySchema,
+  type UpdateClinicSetupBodyDto,
+} from '../dto/update-clinic-setup.dto';
 import { UpdateClinicSetupUseCase } from '../use-cases/update-clinic-setup.usecase';
 
-const updateClinicSetupBodySchema = z.object({
-  name: z.string().min(1),
-  contactPhone: z.string().min(10),
-  contactEmail: z.string().email().optional(),
-  businessHours: z.record(
-    z.object({
-      start: z.string(),
-      end: z.string(),
-      closed: z.boolean(),
-    }),
-  ),
-  timezone: z.string(),
-  averageAppointmentValue: z.number().positive().optional(),
-});
-
-type UpdateClinicSetupBody = z.infer<typeof updateClinicSetupBodySchema>;
-
+/**
+ * Controller for handling clinic setup updates.
+ *
+ * @remarks
+ * This endpoint is part of the onboarding flow where clinic administrators
+ * configure their clinic's basic information and operating hours.
+ * Only users with ADMIN role can access this endpoint.
+ *
+ * @example
+ * ```
+ * PATCH /clinics/setup
+ * {
+ *   "name": "Health Center",
+ *   "contactPhone": "11999999999",
+ *   "businessHours": { "monday": { "start": "08:00", "end": "18:00", "closed": false } },
+ *   "timezone": "America/Sao_Paulo"
+ * }
+ * ```
+ */
 @Controller('/clinics/setup')
 export class UpdateClinicSetupController {
   constructor(private updateClinicSetup: UpdateClinicSetupUseCase) {}
 
+  /**
+   * Handles the PATCH request to update clinic setup information.
+   *
+   * @param user - The authenticated user's JWT payload
+   * @param body - The validated request body containing clinic setup data
+   * @returns The updated clinic entity
+   * @throws {ResourceNotFoundError} If the user is not found in the database
+   */
   @Patch()
-  @Roles('ADMIN')
+  @Roles(UserRole.ADMIN)
   @HttpCode(200)
   async handle(
     @CurrentUser() user: UserPayload,
     @Body(new ZodValidationPipe(updateClinicSetupBodySchema))
-    body: UpdateClinicSetupBody,
+    body: UpdateClinicSetupBodyDto,
   ) {
     const {
       name,

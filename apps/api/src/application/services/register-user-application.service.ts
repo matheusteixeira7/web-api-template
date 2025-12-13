@@ -1,5 +1,6 @@
 import { PrismaService } from '@/infra/database/prisma.service';
 import { User } from '@/modules/users/entities/user.entity';
+import { UserRole } from '@/shared/types/user-role.enum';
 import { Injectable } from '@nestjs/common';
 
 /**
@@ -41,7 +42,7 @@ export class RegisterUserApplicationService {
           name: input.name,
           password: input.hashedPassword,
           clinicId: clinicRecord.id,
-          role: 'ADMIN',
+          role: UserRole.ADMIN,
           emailVerified: input.emailVerified,
         },
       });
@@ -53,7 +54,7 @@ export class RegisterUserApplicationService {
         name: userRecord.name,
         password: userRecord.password,
         clinicId: userRecord.clinicId,
-        role: userRecord.role as 'ADMIN' | 'USER',
+        role: userRecord.role as UserRole,
         emailVerified: userRecord.emailVerified,
         createdAt: userRecord.createdAt,
         updatedAt: userRecord.updatedAt,

@@ -14,6 +14,12 @@ import { ClinicsRepository } from '../repositories/clinics.repository';
 export class CreateClinicUseCase {
   constructor(private readonly clinicsRepository: ClinicsRepository) {}
 
+  /**
+   * Creates a new clinic with default settings.
+   *
+   * @param input - The clinic creation data
+   * @returns The newly created clinic
+   */
   async execute(input: CreateClinicInputDto): Promise<Clinic> {
     const clinic = new Clinic({
       id: randomUUID(),

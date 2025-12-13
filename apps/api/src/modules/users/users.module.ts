@@ -15,14 +15,23 @@ import { UpdatePasswordUseCase } from './use-cases/update-password.usecase';
 import { VerifyEmailUseCase } from './use-cases/verify-email.usecase';
 
 /**
- * UsersModule - Users domain module
+ * UsersModule - Users domain module.
  *
- * This module follows Clean Architecture with Facade Pattern:
- * - Exports ONLY UsersApi (interface Symbol) - public API
+ * @remarks
+ * This module follows Clean Architecture with the Facade Pattern:
+ * - Exports ONLY `UsersApi` (interface Symbol) as the public API
  * - Uses NestJS DI (no manual factories)
  * - Repositories are internal (not exported)
  * - Use cases are internal (not exported)
  * - Facade delegates to use cases
+ *
+ * External modules should inject `UsersApi` to interact with this module.
+ *
+ * @example
+ * ```typescript
+ * // In another module
+ * constructor(@Inject(UsersApi) private readonly usersApi: UsersApi) {}
+ * ```
  */
 @Module({
   imports: [DatabaseModule],

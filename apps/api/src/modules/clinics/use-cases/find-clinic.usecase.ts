@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { FindClinicInputDto } from '../dto/find-clinic.dto';
 import { Clinic } from '../entities/clinic.entity';
 import { ClinicsRepository } from '../repositories/clinics.repository';
 
@@ -12,11 +13,13 @@ import { ClinicsRepository } from '../repositories/clinics.repository';
 export class FindClinicUseCase {
   constructor(private readonly clinicsRepository: ClinicsRepository) {}
 
-  async execute(input: FindClinicInput): Promise<Clinic | null> {
+  /**
+   * Finds a clinic by its unique identifier.
+   *
+   * @param input - The input containing the clinic ID
+   * @returns The clinic if found, null otherwise
+   */
+  async execute(input: FindClinicInputDto): Promise<Clinic | null> {
     return this.clinicsRepository.findById(input.id);
   }
-}
-
-export interface FindClinicInput {
-  id: string;
 }

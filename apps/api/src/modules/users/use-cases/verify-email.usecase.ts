@@ -1,20 +1,28 @@
 import { Injectable } from '@nestjs/common';
+import type { VerifyEmailInputDto } from '../dto/verify-email.dto';
 import { UsersRepository } from '../repositories/users.repository';
 
 /**
- * VerifyEmailUseCase - Mark user's email as verified
+ * Use case for marking a user's email as verified.
  *
+ * @remarks
  * This use case handles email verification logic.
- * Previously this was in auth module (verify-email.usecase.ts),
- * but it's been moved here because it modifies User entity.
+ * Previously this was in auth module but moved here because it modifies User entity.
+ * Domain logic should live in the module that owns the entity.
  *
- * Principle: Domain logic should live in the module that owns the entity.
+ * @throws {Error} If the user is not found
  */
 @Injectable()
 export class VerifyEmailUseCase {
   constructor(private readonly usersRepository: UsersRepository) {}
 
-  async execute(input: VerifyEmailInput): Promise<void> {
+  /**
+   * Marks a user's email as verified.
+   *
+   * @param input - Contains the userId to verify
+   * @throws {Error} If the user is not found
+   */
+  async execute(input: VerifyEmailInputDto): Promise<void> {
     const user = await this.usersRepository.findById(input.userId);
 
     if (!user) {
@@ -26,8 +34,4 @@ export class VerifyEmailUseCase {
 
     await this.usersRepository.save(user);
   }
-}
-
-export interface VerifyEmailInput {
-  userId: string;
 }

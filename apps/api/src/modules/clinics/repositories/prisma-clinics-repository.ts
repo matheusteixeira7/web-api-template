@@ -5,12 +5,17 @@ import { Prisma, Clinic as PrismaClinic } from '@workspace/database';
 import { Clinic } from '../entities/clinic.entity';
 import { ClinicsRepository } from './clinics.repository';
 
+/**
+ * Prisma implementation of the ClinicsRepository.
+ * Handles all clinic database operations using Prisma ORM.
+ */
 @Injectable()
 export class PrismaClinicsRepository extends ClinicsRepository {
   constructor(private readonly prisma: PrismaService) {
     super();
   }
 
+  /** @inheritdoc */
   async findById(id: string): Promise<Clinic | null> {
     const clinic = await this.prisma.client.clinic.findUnique({
       where: {
@@ -25,6 +30,7 @@ export class PrismaClinicsRepository extends ClinicsRepository {
     return this.mapToEntity(clinic);
   }
 
+  /** @inheritdoc */
   async create(data: Clinic): Promise<Clinic> {
     const createdClinic = await this.prisma.client.clinic.create({
       data: {
@@ -45,6 +51,7 @@ export class PrismaClinicsRepository extends ClinicsRepository {
     return this.mapToEntity(createdClinic);
   }
 
+  /** @inheritdoc */
   async save(clinic: Clinic): Promise<Clinic> {
     const updatedClinic = await this.prisma.client.clinic.update({
       where: {
@@ -67,7 +74,13 @@ export class PrismaClinicsRepository extends ClinicsRepository {
     return this.mapToEntity(updatedClinic);
   }
 
-  mapToEntity(clinic: PrismaClinic): Clinic {
+  /**
+   * Maps a Prisma clinic record to a domain entity.
+   *
+   * @param clinic - The Prisma clinic record
+   * @returns The clinic domain entity
+   */
+  private mapToEntity(clinic: PrismaClinic): Clinic {
     return new Clinic({
       id: clinic.id,
       name: clinic.name,

@@ -1,15 +1,25 @@
 import { PrismaService } from '@/infra/database/prisma.service';
+import { UserRole } from '@/shared/types/user-role.enum';
 import { Injectable } from '@nestjs/common';
 import { User as PrismaUser } from '@workspace/database';
 import { User } from '../entities/user.entity';
-import { UsersRepository, type UserWithClinicStatus } from './users.repository';
+import type { UserWithClinicStatus } from '../dto/user-with-clinic-status.dto';
+import { UsersRepository } from './users.repository';
 
+/**
+ * Prisma implementation of the UsersRepository.
+ *
+ * @remarks
+ * This class provides concrete database operations using Prisma ORM.
+ * It implements the abstract UsersRepository interface.
+ */
 @Injectable()
 export class PrismaUsersRepository extends UsersRepository {
   constructor(private readonly prisma: PrismaService) {
     super();
   }
 
+  /** @inheritdoc */
   async findById(id: string): Promise<User | null> {
     const user = await this.prisma.client.user.findUnique({
       where: {
@@ -24,6 +34,7 @@ export class PrismaUsersRepository extends UsersRepository {
     return this.mapToEntity(user);
   }
 
+  /** @inheritdoc */
   async findByEmail(email: string): Promise<User | null> {
     const user = await this.prisma.client.user.findUnique({
       where: {
@@ -38,6 +49,7 @@ export class PrismaUsersRepository extends UsersRepository {
     return this.mapToEntity(user);
   }
 
+  /** @inheritdoc */
   async findByIdWithClinic(id: string): Promise<UserWithClinicStatus | null> {
     const user = await this.prisma.client.user.findUnique({
       where: { id },
@@ -59,6 +71,7 @@ export class PrismaUsersRepository extends UsersRepository {
     };
   }
 
+  /** @inheritdoc */
   async create(data: User): Promise<User> {
     const createdUser = await this.prisma.client.user.create({
       data: {
@@ -75,6 +88,7 @@ export class PrismaUsersRepository extends UsersRepository {
     return this.mapToEntity(createdUser);
   }
 
+  /** @inheritdoc */
   async save(user: User): Promise<User> {
     const updatedUser = await this.prisma.client.user.update({
       where: {
@@ -93,6 +107,7 @@ export class PrismaUsersRepository extends UsersRepository {
     return this.mapToEntity(updatedUser);
   }
 
+  /** @inheritdoc */
   mapToEntity(user: PrismaUser): User {
     return new User({
       id: user.id,
@@ -100,7 +115,7 @@ export class PrismaUsersRepository extends UsersRepository {
       clinicId: user.clinicId,
       name: user.name || '',
       password: user.password,
-      role: user.role,
+      role: user.role as UserRole,
       emailVerified: user.emailVerified,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,

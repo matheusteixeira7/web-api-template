@@ -1,3 +1,4 @@
+import { UserRole } from '@/shared/types/user-role.enum';
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { FastifyRequest } from 'fastify';
@@ -7,7 +8,7 @@ import { EnvService } from '../env/env.service';
 
 const tokenPayloadSchema = z.object({
   sub: z.string().uuid(),
-  role: z.enum(['USER', 'ADMIN']),
+  role: z.nativeEnum(UserRole),
 });
 
 export type UserPayload = z.infer<typeof tokenPayloadSchema>;

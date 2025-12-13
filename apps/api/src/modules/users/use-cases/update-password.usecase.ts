@@ -2,19 +2,25 @@ import { Injectable } from '@nestjs/common';
 import { UsersRepository } from '../repositories/users.repository';
 
 /**
- * UpdatePasswordUseCase - Update user's password
+ * Use case for updating a user's password.
  *
- * This use case handles password update logic.
- * Previously this was scattered across auth module use cases,
- * but it's been centralized here because it modifies User entity.
+ * @remarks
+ * This use case handles password update logic. It receives an already-hashed
+ * password - password hashing should be done by the calling module (auth).
+ * Centralized here because it modifies the User entity.
  *
- * Note: This receives an already-hashed password.
- * Password hashing should be done by the calling module (auth).
+ * @throws {Error} If the user is not found
  */
 @Injectable()
 export class UpdatePasswordUseCase {
   constructor(private readonly usersRepository: UsersRepository) {}
 
+  /**
+   * Updates a user's password.
+   *
+   * @param input - Contains the userId and the new hashed password
+   * @throws {Error} If the user is not found
+   */
   async execute(input: UpdatePasswordInput): Promise<void> {
     const user = await this.usersRepository.findById(input.userId);
 
@@ -29,7 +35,10 @@ export class UpdatePasswordUseCase {
   }
 }
 
+/** Input for password update */
 export interface UpdatePasswordInput {
+  /** The user's unique identifier */
   userId: string;
+  /** The new password (already hashed) */
   hashedPassword: string;
 }

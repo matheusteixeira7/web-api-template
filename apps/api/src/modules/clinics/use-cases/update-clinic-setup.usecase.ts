@@ -8,6 +8,13 @@ import type {
 } from '../dto/update-clinic-setup.dto';
 import { ClinicsRepository } from '../repositories/clinics.repository';
 
+/**
+ * Use case responsible for updating the initial setup of a clinic.
+ *
+ * This use case allows authorized users to update information such as
+ * name, contact details, business hours, timezone, and average appointment value.
+ * Upon successful execution, it marks the clinic setup as complete.
+ */
 @Injectable()
 export class UpdateClinicSetupUseCase {
   constructor(
@@ -15,6 +22,24 @@ export class UpdateClinicSetupUseCase {
     @Inject(UsersApi) private readonly usersApi: UsersApi,
   ) {}
 
+  /**
+   * Executes the clinic setup update.
+   *
+   * @param data - Data for updating the clinic
+   * @param data.clinicId - ID of the clinic to be updated
+   * @param data.userId - ID of the user performing the update
+   * @param data.name - New name of the clinic
+   * @param data.contactPhone - Clinic contact phone number
+   * @param data.contactEmail - Clinic contact email (optional)
+   * @param data.businessHours - Clinic business hours
+   * @param data.timezone - Clinic timezone
+   * @param data.averageAppointmentValue - Average appointment value (optional)
+   *
+   * @returns Object containing the updated clinic
+   *
+   * @throws {ForbiddenException} When the user does not belong to the clinic
+   * @throws {ResourceNotFoundError} When the clinic is not found
+   */
   async execute(
     data: UpdateClinicSetupInputDto,
   ): Promise<UpdateClinicSetupResponseDto> {

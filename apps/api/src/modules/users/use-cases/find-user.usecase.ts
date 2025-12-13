@@ -6,10 +6,26 @@ import type {
 } from '../dto/find-user.dto';
 import { UsersRepository } from '../repositories/users.repository';
 
+/**
+ * Use case for finding a user by ID.
+ *
+ * @remarks
+ * Retrieves a user by their unique identifier.
+ * Returns the user without the password field for security.
+ *
+ * @throws {ResourceNotFoundError} If the user is not found
+ */
 @Injectable()
 export class FindUserUseCase {
   constructor(private readonly usersRepository: UsersRepository) {}
 
+  /**
+   * Executes the find user operation.
+   *
+   * @param input - Contains the userId to search for
+   * @returns The found user without password
+   * @throws {ResourceNotFoundError} If the user is not found
+   */
   async execute({ userId }: FindUserInputDto): Promise<FindUserResponseDto> {
     const user = await this.usersRepository.findById(userId);
 
