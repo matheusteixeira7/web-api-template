@@ -24,6 +24,18 @@ See `docs/business-plan.md` for detailed requirements and user stories.
 - Entity Pattern for domain models
 - Application Service Pattern for cross-module transactional operations
 
+## Code Standards
+
+**NEVER use `any` type** - This project strictly forbids the use of `any`. ESLint is configured with:
+- `@typescript-eslint/no-explicit-any: error`
+- `@typescript-eslint/no-unsafe-assignment: error`
+- `@typescript-eslint/no-unsafe-member-access: error`
+- `@typescript-eslint/no-unsafe-call: error`
+- `@typescript-eslint/no-unsafe-return: error`
+- `@typescript-eslint/no-unsafe-argument: error`
+
+Always use proper types. For external API responses, create interfaces and cast with `as Type`.
+
 ## Build & Development Commands
 
 ```bash
@@ -166,3 +178,4 @@ The Web app requires:
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:3333
 ```
+- Always use descriptive variable names

@@ -6,7 +6,6 @@ import type {
   UpdateClinicSetupInputDto,
   UpdateClinicSetupResponseDto,
 } from '../dto/update-clinic-setup.dto';
-import type { Clinic } from '../entities/clinic.entity';
 import { ClinicsRepository } from '../repositories/clinics.repository';
 
 @Injectable()
@@ -61,12 +60,5 @@ export class UpdateClinicSetupUseCase {
     return {
       clinic: updatedClinic,
     };
-  }
-
-  /**
-   * Method for facade usage
-   */
-  async updateClinic(clinic: Clinic): Promise<Clinic> {
-    return this.clinicsRepository.save(clinic);
   }
 }

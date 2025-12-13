@@ -1,4 +1,4 @@
-import { User, UserRole } from '@/modules/users/entities/user.entity';
+import { User } from '@/modules/users/entities/user.entity';
 
 /**
  * Public API contract for Users module
@@ -28,29 +28,6 @@ export interface UsersApi {
   findByEmail(email: string): Promise<User | null>;
 
   /**
-   * Find user by ID with clinic relationship
-   * @param id User unique identifier
-   * @returns User with clinic status or null if not found
-   */
-  findByIdWithClinic(
-    id: string,
-  ): Promise<{ user: User; clinic: { isSetupComplete: boolean } } | null>;
-
-  /**
-   * Create a new user
-   * @param data User creation data
-   * @returns Created user entity
-   */
-  createUser(data: CreateUserData): Promise<User>;
-
-  /**
-   * Update an existing user
-   * @param user User entity with updated fields
-   * @returns Updated user entity
-   */
-  updateUser(user: User): Promise<User>;
-
-  /**
    * Mark user's email as verified
    * @param userId User unique identifier
    */
@@ -77,15 +54,3 @@ export interface UsersApi {
  * }
  */
 export const UsersApi = Symbol('UsersApi');
-
-/**
- * DTO for creating a new user
- */
-export interface CreateUserData {
-  email: string;
-  name: string;
-  password: string | null; // null for OAuth users
-  clinicId: string;
-  role: UserRole;
-  emailVerified: boolean;
-}

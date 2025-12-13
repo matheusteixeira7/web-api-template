@@ -7,6 +7,9 @@ import { UsersFacade } from './public-api/facade/users.facade';
 import { PrismaUsersRepository } from './repositories/prisma-users-repository';
 import { UsersRepository } from './repositories/users.repository';
 import { CreateUserUseCase } from './use-cases/create-user.usecase';
+import { FindUserByEmailUseCase } from './use-cases/find-user-by-email.usecase';
+import { FindUserByIdUseCase } from './use-cases/find-user-by-id.usecase';
+import { FindUserWithClinicUseCase } from './use-cases/find-user-with-clinic.usecase';
 import { FindUserUseCase } from './use-cases/find-user.usecase';
 import { UpdatePasswordUseCase } from './use-cases/update-password.usecase';
 import { VerifyEmailUseCase } from './use-cases/verify-email.usecase';
@@ -28,8 +31,11 @@ import { VerifyEmailUseCase } from './use-cases/verify-email.usecase';
     // Repository binding (internal, used by use cases)
     { provide: UsersRepository, useClass: PrismaUsersRepository },
 
-    // Use cases (internal, used by facade)
+    // Use cases (internal, used by facade and controllers)
     FindUserUseCase,
+    FindUserByIdUseCase,
+    FindUserByEmailUseCase,
+    FindUserWithClinicUseCase,
     CreateUserUseCase,
     VerifyEmailUseCase,
     UpdatePasswordUseCase,

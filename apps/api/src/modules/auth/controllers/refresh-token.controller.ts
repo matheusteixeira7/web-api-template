@@ -1,4 +1,10 @@
-import { Controller, Post, Req, Res, UnauthorizedException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Req,
+  Res,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { Public } from '@/infra/auth/public';
 import { RefreshTokenUseCase } from '../use-cases/refresh-token.usecase';

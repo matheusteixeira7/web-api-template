@@ -28,13 +28,6 @@ export interface ClinicsApi {
   createClinic(data: CreateClinicData): Promise<Clinic>;
 
   /**
-   * Update an existing clinic
-   * @param clinic Clinic entity with updated fields
-   * @returns Updated clinic entity
-   */
-  updateClinic(clinic: Clinic): Promise<Clinic>;
-
-  /**
    * Verify if a user belongs to a clinic (authorization check)
    *
    * This method demonstrates cross-module communication via facades.

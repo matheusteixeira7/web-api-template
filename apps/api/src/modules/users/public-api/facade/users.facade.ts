@@ -1,11 +1,8 @@
-import {
-  UsersApi,
-  type CreateUserData,
-} from '@/shared/public-api/interface/users-api.interface';
+import { UsersApi } from '@/shared/public-api/interface/users-api.interface';
 import { Injectable } from '@nestjs/common';
 import { User } from '../../entities/user.entity';
-import { CreateUserUseCase } from '../../use-cases/create-user.usecase';
-import { FindUserUseCase } from '../../use-cases/find-user.usecase';
+import { FindUserByEmailUseCase } from '../../use-cases/find-user-by-email.usecase';
+import { FindUserByIdUseCase } from '../../use-cases/find-user-by-id.usecase';
 import { UpdatePasswordUseCase } from '../../use-cases/update-password.usecase';
 import { VerifyEmailUseCase } from '../../use-cases/verify-email.usecase';
 
@@ -23,32 +20,18 @@ import { VerifyEmailUseCase } from '../../use-cases/verify-email.usecase';
 @Injectable()
 export class UsersFacade implements UsersApi {
   constructor(
-    private readonly findUserUseCase: FindUserUseCase,
-    private readonly createUserUseCase: CreateUserUseCase,
+    private readonly findUserByIdUseCase: FindUserByIdUseCase,
+    private readonly findUserByEmailUseCase: FindUserByEmailUseCase,
     private readonly verifyEmailUseCase: VerifyEmailUseCase,
     private readonly updatePasswordUseCase: UpdatePasswordUseCase,
   ) {}
 
   async findById(id: string): Promise<User | null> {
-    return this.findUserUseCase.findById(id);
+    return this.findUserByIdUseCase.execute(id);
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.findUserUseCase.findByEmail(email);
-  }
-
-  async findByIdWithClinic(
-    id: string,
-  ): Promise<{ user: User; clinic: { isSetupComplete: boolean } } | null> {
-    return this.findUserUseCase.findByIdWithClinic(id);
-  }
-
-  async createUser(data: CreateUserData): Promise<User> {
-    return this.createUserUseCase.createUser(data);
-  }
-
-  async updateUser(user: User): Promise<User> {
-    return this.createUserUseCase.updateUser(user);
+    return this.findUserByEmailUseCase.execute(email);
   }
 
   async verifyEmailAddress(userId: string): Promise<void> {

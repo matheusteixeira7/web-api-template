@@ -1,6 +1,6 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { randomUUID } from 'crypto';
-import { UsersApi } from '@/shared/public-api/interface/users-api.interface'
+import { UsersApi } from '@/shared/public-api/interface/users-api.interface';
 import { Encrypter } from '@/shared/cryptography/encrypter';
 import { RefreshTokensRepository } from '../repositories/refresh-tokens.repository';
 

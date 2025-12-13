@@ -6,37 +6,15 @@ import { Encrypter } from '@/shared/cryptography/encrypter';
 import { UsersApi } from '@/shared/public-api/interface/users-api.interface';
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { randomUUID } from 'crypto';
+import type {
+  OAuthGoogleRequestDto,
+  OAuthGoogleResponseDto,
+} from '../dto/oauth-google.dto';
 import { RefreshTokensRepository } from '../repositories/refresh-tokens.repository';
-
-interface GoogleTokenResponse {
-  access_token: string;
-  id_token: string;
-  expires_in: number;
-  token_type: string;
-}
-
-interface GoogleUserInfo {
-  id: string;
-  email: string;
-  verified_email: boolean;
-  name?: string;
-  picture?: string;
-}
-
-interface OAuthGoogleRequest {
-  code: string;
-}
-
-interface OAuthGoogleResponse {
-  accessToken: string;
-  refreshToken: string;
-  csrfToken: string;
-  user: {
-    id: string;
-    email: string;
-    name: string | null;
-  };
-}
+import type {
+  GoogleTokenResponse,
+  GoogleUserInfo,
+} from '../types/google-oauth.types';
 
 @Injectable()
 export class OAuthGoogleUseCase {
@@ -49,7 +27,7 @@ export class OAuthGoogleUseCase {
     private readonly env: EnvService,
   ) {}
 
-  async execute({ code }: OAuthGoogleRequest): Promise<OAuthGoogleResponse> {
+  async execute({ code }: OAuthGoogleRequestDto): Promise<OAuthGoogleResponseDto> {
     // Exchange code for tokens
     const tokenResponse = await this.exchangeCodeForTokens(code);
 
@@ -114,10 +92,15 @@ export class OAuthGoogleUseCase {
         id: newUser.id,
         email: newUser.email,
         name: newUser.name,
+        password: newUser.password,
+        clinicId: newUser.clinicId,
         role: newUser.role,
         emailVerified: newUser.emailVerified,
+        createdAt: newUser.createdAt,
+        updatedAt: newUser.updatedAt,
+        deletedAt: newUser.deletedAt,
         oauthAccounts: [],
-      } as any;
+      };
     }
 
     // Generate tokens
@@ -171,7 +154,7 @@ export class OAuthGoogleUseCase {
       throw new UnauthorizedException('Failed to exchange code for tokens');
     }
 
-    return response.json();
+    return response.json() as Promise<GoogleTokenResponse>;
   }
 
   private async getGoogleUserInfo(
@@ -190,6 +173,6 @@ export class OAuthGoogleUseCase {
       throw new UnauthorizedException('Failed to get Google user info');
     }
 
-    return response.json();
+    return response.json() as Promise<GoogleUserInfo>;
   }
 }

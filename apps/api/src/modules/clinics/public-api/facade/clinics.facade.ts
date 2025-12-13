@@ -6,7 +6,6 @@ import { Injectable } from '@nestjs/common';
 import { Clinic } from '../../entities/clinic.entity';
 import { CreateClinicUseCase } from '../../use-cases/create-clinic.usecase';
 import { FindClinicUseCase } from '../../use-cases/find-clinic.usecase';
-import { UpdateClinicSetupUseCase } from '../../use-cases/update-clinic-setup.usecase';
 import { VerifyUserBelongsToClinicUseCase } from '../../use-cases/verify-user-belongs-to-clinic.usecase';
 
 /**
@@ -20,7 +19,6 @@ export class ClinicsFacade implements ClinicsApi {
   constructor(
     private readonly findClinicUseCase: FindClinicUseCase,
     private readonly createClinicUseCase: CreateClinicUseCase,
-    private readonly updateClinicSetupUseCase: UpdateClinicSetupUseCase,
     private readonly verifyUserBelongsToClinicUseCase: VerifyUserBelongsToClinicUseCase,
   ) {}
 
@@ -30,10 +28,6 @@ export class ClinicsFacade implements ClinicsApi {
 
   async createClinic(data: CreateClinicData): Promise<Clinic> {
     return this.createClinicUseCase.execute(data);
-  }
-
-  async updateClinic(clinic: Clinic): Promise<Clinic> {
-    return await this.updateClinicSetupUseCase.updateClinic(clinic);
   }
 
   async verifyUserBelongsToClinic(

@@ -1,6 +1,6 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { PrismaService } from '@/infra/database/prisma.service'
-import { UsersApi } from '@/shared/public-api/interface/users-api.interface'
+import { PrismaService } from '@/infra/database/prisma.service';
+import { UsersApi } from '@/shared/public-api/interface/users-api.interface';
 import { HashGenerator } from '@/shared/cryptography/hash-generator';
 
 interface ResetPasswordRequest {

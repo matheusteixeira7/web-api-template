@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
+import type { CreateClinicInputDto } from '../dto/create-clinic.dto';
 import { Clinic } from '../entities/clinic.entity';
 import { ClinicsRepository } from '../repositories/clinics.repository';
 
@@ -13,7 +14,7 @@ import { ClinicsRepository } from '../repositories/clinics.repository';
 export class CreateClinicUseCase {
   constructor(private readonly clinicsRepository: ClinicsRepository) {}
 
-  async execute(input: CreateClinicInput): Promise<Clinic> {
+  async execute(input: CreateClinicInputDto): Promise<Clinic> {
     const clinic = new Clinic({
       id: randomUUID(),
       name: input.name,
@@ -31,11 +32,4 @@ export class CreateClinicUseCase {
 
     return this.clinicsRepository.create(clinic);
   }
-}
-
-export interface CreateClinicInput {
-  name: string;
-  contactEmail?: string;
-  contactPhone?: string;
-  timezone?: string;
 }

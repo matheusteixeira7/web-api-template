@@ -29,7 +29,7 @@ import { VerifyUserBelongsToClinicUseCase } from './use-cases/verify-user-belong
     // Repository binding (internal, used by use cases)
     { provide: ClinicsRepository, useClass: PrismaClinicsRepository },
 
-    // Use cases (internal, used by facade)
+    // Use cases (internal, used by facade and controllers)
     FindClinicUseCase,
     CreateClinicUseCase,
     UpdateClinicSetupUseCase,

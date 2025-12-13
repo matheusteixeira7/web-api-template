@@ -4,12 +4,10 @@ import { UsersController } from './users.controller';
 
 describe('UsersController', () => {
   let controller: UsersController;
-  let findUserUseCase: FindUserUseCase;
 
   beforeEach(async () => {
     const mockFindUserUseCase = {
       execute: jest.fn(),
-      executeWithClinic: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -23,7 +21,6 @@ describe('UsersController', () => {
     }).compile();
 
     controller = module.get<UsersController>(UsersController);
-    findUserUseCase = module.get<FindUserUseCase>(FindUserUseCase);
   });
 
   it('should be defined', () => {
