@@ -33,6 +33,11 @@ export class GetCurrentUserController {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...userWithoutPassword } = result.user;
 
-    return { user: userWithoutPassword };
+    return {
+      user: {
+        ...userWithoutPassword,
+        isClinicSetupComplete: result.clinic.isSetupComplete,
+      },
+    };
   }
 }

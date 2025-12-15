@@ -180,3 +180,4 @@ NEXT_PUBLIC_API_URL=http://localhost:3333
 ```
 - Always use descriptive variable names
 - DTOs should always be written using zod
+- DTO should always use Zod Library
