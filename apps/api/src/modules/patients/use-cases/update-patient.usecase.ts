@@ -24,8 +24,7 @@ export class UpdatePatientUseCase {
    *
    * @param input - The patient update data including identifiers
    * @returns The updated patient wrapped in response DTO
-   * @throws {ResourceNotFoundError} If the patient is not found
-   * @throws {ForbiddenException} If the patient doesn't belong to the clinic
+   * @throws {ResourceNotFoundError} If the patient is not found or doesn't belong to the clinic
    * @throws {ConflictException} If CPF already exists for another patient in the clinic
    */
   async execute(
@@ -86,7 +85,7 @@ export class UpdatePatientUseCase {
         patientId,
         clinicId,
       );
-      return { patient: patientWithDocs };
+      return { patient: patientWithDocs! };
     }
 
     return { patient: updatedPatient };

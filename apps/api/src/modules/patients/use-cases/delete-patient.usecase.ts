@@ -25,8 +25,7 @@ export class DeletePatientUseCase {
    * Soft deletes a patient.
    *
    * @param input - The patient and clinic identifiers
-   * @throws {ResourceNotFoundError} If the patient is not found
-   * @throws {ForbiddenException} If the patient doesn't belong to the clinic
+   * @throws {ResourceNotFoundError} If the patient is not found or doesn't belong to the clinic
    */
   async execute(input: DeletePatientInput): Promise<void> {
     const { patientId, clinicId } = input;
