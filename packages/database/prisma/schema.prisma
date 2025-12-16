@@ -48,9 +48,11 @@ model Clinic {
   updatedAt               DateTime  @updatedAt @map("updated_at")
   deletedAt               DateTime? @map("deleted_at")
 
-  users     User[]
-  providers Provider[]
-  locations ClinicLocation[]
+  users            User[]
+  providers        Provider[]
+  locations        ClinicLocation[]
+  patients         Patient[]
+  patientDocuments PatientDocument[]
 
   @@map("clinics")
 }
@@ -147,4 +149,57 @@ model ProviderLocation {
 
   @@unique([providerId, locationId])
   @@map("provider_locations")
+}
+
+model Patient {
+  id              String    @id @default(uuid())
+  clinicId        String    @map("clinic_id")
+  clinic          Clinic    @relation(fields: [clinicId], references: [id])
+  name            String
+  phone           String
+  email           String?
+  dateOfBirth     DateTime? @map("date_of_birth") @db.Date
+  medicalRecordId String?   @map("medical_record_id")
+  notes           String?
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  deletedAt       DateTime? @map("deleted_at")
+
+  documents PatientDocument[]
+
+  @@index([clinicId])
+  @@index([clinicId, phone])
+  @@index([clinicId, name])
+  @@index([clinicId, medicalRecordId])
+  @@map("patients")
+}
+
+model DocumentType {
+  id        String   @id @default(uuid())
+  code      String   @unique @db.VarChar(20)
+  name      String   @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  documents PatientDocument[]
+
+  @@map("document_types")
+}
+
+model PatientDocument {
+  id             String   @id @default(uuid())
+  clinicId       String   @map("clinic_id")
+  patientId      String   @map("patient_id")
+  documentTypeId String   @map("document_type_id")
+  value          String   @db.VarChar(30)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  clinic       Clinic       @relation(fields: [clinicId], references: [id])
+  patient      Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  documentType DocumentType @relation(fields: [documentTypeId], references: [id])
+
+  @@unique([patientId, documentTypeId])
+  @@unique([clinicId, documentTypeId, value])
+  @@index([patientId])
+  @@map("patient_documents")
 }
