@@ -57,10 +57,10 @@ export class PatientsController {
    * @param user - The authenticated user's JWT payload
    * @param body - The patient creation data
    * @returns The created patient entity
-   * @requires ADMIN role
+   * @requires USER role
    */
   @Post()
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.USER)
   async create(
     @CurrentUser() user: UserPayload,
     @Body(new ZodValidationPipe(createPatientBodySchema))
