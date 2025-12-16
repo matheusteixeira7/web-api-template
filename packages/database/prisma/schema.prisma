@@ -29,6 +29,7 @@ model User {
   emailVerifyTokens   EmailVerifyToken[]
   passwordResetTokens PasswordResetToken[]
   oauthAccounts       OAuthAccount[]
+  provider            Provider?
 
   @@map("users")
 }
@@ -46,7 +47,10 @@ model Clinic {
   createdAt               DateTime  @default(now()) @map("created_at")
   updatedAt               DateTime  @updatedAt @map("updated_at")
   deletedAt               DateTime? @map("deleted_at")
-  users                   User[]
+
+  users     User[]
+  providers Provider[]
+  locations ClinicLocation[]
 
   @@map("clinics")
 }
@@ -94,4 +98,53 @@ model OAuthAccount {
 
   @@unique([provider, providerId])
   @@map("oauth_accounts")
+}
+
+model ClinicLocation {
+  id            String    @id @default(uuid())
+  clinicId      String    @map("clinic_id")
+  clinic        Clinic    @relation(fields: [clinicId], references: [id])
+  name          String
+  addressStreet String?   @map("address_street")
+  addressCity   String?   @map("address_city")
+  addressState  String?   @map("address_state")
+  addressZip    String?   @map("address_zip")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  deletedAt     DateTime? @map("deleted_at")
+
+  providerLocations ProviderLocation[]
+
+  @@map("clinic_locations")
+}
+
+model Provider {
+  id                         String    @id @default(uuid())
+  clinicId                   String    @map("clinic_id")
+  clinic                     Clinic    @relation(fields: [clinicId], references: [id])
+  userId                     String?   @unique @map("user_id")
+  user                       User?     @relation(fields: [userId], references: [id])
+  name                       String
+  specialty                  String?
+  defaultAppointmentDuration Int       @default(30) @map("default_appointment_duration")
+  workingHours               Json?     @map("working_hours")
+  createdAt                  DateTime  @default(now()) @map("created_at")
+  updatedAt                  DateTime  @updatedAt @map("updated_at")
+  deletedAt                  DateTime? @map("deleted_at")
+
+  providerLocations ProviderLocation[]
+
+  @@map("providers")
+}
+
+model ProviderLocation {
+  id         String         @id @default(uuid())
+  providerId String         @map("provider_id")
+  provider   Provider       @relation(fields: [providerId], references: [id])
+  locationId String         @map("location_id")
+  location   ClinicLocation @relation(fields: [locationId], references: [id])
+  createdAt  DateTime       @default(now()) @map("created_at")
+
+  @@unique([providerId, locationId])
+  @@map("provider_locations")
 }

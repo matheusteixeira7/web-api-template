@@ -27,7 +27,9 @@ export class OAuthGoogleUseCase {
     private readonly env: EnvService,
   ) {}
 
-  async execute({ code }: OAuthGoogleRequestDto): Promise<OAuthGoogleResponseDto> {
+  async execute({
+    code,
+  }: OAuthGoogleRequestDto): Promise<OAuthGoogleResponseDto> {
     // Exchange code for tokens
     const tokenResponse = await this.exchangeCodeForTokens(code);
 
@@ -107,6 +109,7 @@ export class OAuthGoogleUseCase {
     const accessToken = await this.encrypter.encrypt({
       sub: user.id,
       role: user.role,
+      clinicId: user.clinicId,
     });
 
     const refreshToken = randomUUID();

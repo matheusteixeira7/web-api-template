@@ -1,11 +1,9 @@
 import { CurrentUser } from '@/infra/auth/current-user-decorator';
 import type { UserPayload } from '@/infra/auth/jwt.strategy';
 import { Roles } from '@/infra/auth/roles.decorator';
-import { ResourceNotFoundError } from '@/shared/errors/resource-not-found-error';
-import { UserRole } from '@/shared/types/user-role.enum';
 import { ZodValidationPipe } from '@/shared/pipes/zod-validation.pipe';
+import { UserRole } from '@/shared/types/user-role.enum';
 import { Body, Controller, HttpCode, Patch } from '@nestjs/common';
-import { prisma } from '@workspace/database';
 import {
   updateClinicSetupBodySchema,
   type UpdateClinicSetupBodyDto,
@@ -41,7 +39,6 @@ export class UpdateClinicSetupController {
    * @param user - The authenticated user's JWT payload
    * @param body - The validated request body containing clinic setup data
    * @returns The updated clinic entity
-   * @throws {ResourceNotFoundError} If the user is not found in the database
    */
   @Patch()
   @Roles(UserRole.ADMIN)
@@ -60,19 +57,9 @@ export class UpdateClinicSetupController {
       averageAppointmentValue,
     } = body;
 
-    // Get user's clinic ID from database
-    const currentUser = await prisma.user.findUnique({
-      where: { id: user.sub },
-      select: { clinicId: true },
-    });
-
-    if (!currentUser) {
-      throw new ResourceNotFoundError();
-    }
-
     const { clinic } = await this.updateClinicSetup.execute({
       userId: user.sub,
-      clinicId: currentUser.clinicId,
+      clinicId: user.clinicId,
       name,
       contactPhone,
       contactEmail,

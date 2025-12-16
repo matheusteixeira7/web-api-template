@@ -50,6 +50,7 @@ export class RefreshTokenUseCase {
     const accessToken = await this.encrypter.encrypt({
       sub: user.id,
       role: user.role,
+      clinicId: user.clinicId,
     });
 
     // Generate new refresh token

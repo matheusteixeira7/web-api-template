@@ -36,6 +36,25 @@ See `docs/business-plan.md` for detailed requirements and user stories.
 
 Always use proper types. For external API responses, create interfaces and cast with `as Type`.
 
+**NEVER import Prisma directly in Controllers** - Controllers must NOT access the database directly. Follow Clean Architecture:
+- Controllers call **Use Cases** (same module) or **Facades** (cross-module via Symbol injection)
+- Use Cases call **Repositories**
+- Repositories call **Prisma**
+
+```typescript
+// WRONG - Controller importing Prisma directly
+import { prisma } from '@workspace/database';
+const user = await prisma.user.findUnique({ where: { id } });
+
+// CORRECT - Controller using Facade (cross-module)
+@Inject(UsersApi) private readonly usersApi: UsersApi
+const user = await this.usersApi.findById(id);
+
+// CORRECT - Controller using Use Case (same module)
+constructor(private readonly findUserUseCase: FindUserUseCase) {}
+const user = await this.findUserUseCase.execute(id);
+```
+
 ## Build & Development Commands
 
 ```bash
