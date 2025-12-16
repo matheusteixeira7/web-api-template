@@ -22,10 +22,13 @@ export const updatePatientBodySchema = z.object({
   medicalRecordId: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
   cpf: z
-    .string()
-    .transform((v) => v.replace(/\D/g, ''))
-    .refine((v) => !v || cpf.isValid(v), { message: 'CPF invalido' })
-    .nullable()
+    .union([
+      z.null(),
+      z
+        .string()
+        .transform((v) => v.replace(/\D/g, ''))
+        .refine((v) => !v || cpf.isValid(v), { message: 'CPF invalido' }),
+    ])
     .optional(),
 });
 
