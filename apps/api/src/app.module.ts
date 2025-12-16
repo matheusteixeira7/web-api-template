@@ -9,6 +9,7 @@ import { envSchema } from './infra/env/env';
 import { EnvModule } from './infra/env/env.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ClinicsModule } from './modules/clinics/clinics.module';
+import { PatientsModule } from './modules/patients/patients.module';
 import { ProvidersModule } from './modules/providers/providers.module';
 import { UsersModule } from './modules/users/users.module';
 
@@ -26,6 +27,7 @@ import { UsersModule } from './modules/users/users.module';
     InfraAuthModule,
     AuthModule,
     ClinicsModule,
+    PatientsModule,
     ProvidersModule,
     UsersModule,
   ],

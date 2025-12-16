@@ -1,34 +1,35 @@
 import { prisma } from "./client";
 
-import type { User } from "../generated/prisma/client";
+/**
+ * Document types to seed.
+ */
+const DOCUMENT_TYPES = [
+  { code: "CPF", name: "CPF" },
+  // Future document types:
+  // { code: "RG", name: "RG" },
+  // { code: "PASSPORT", name: "Passaporte" },
+];
 
-const DEFAULT_USERS = [
-  // Add your own user to pre-populate the database with
-  {
-    name: "Tim Apple",
-    email: "tim@apple.com",
-  },
-] as Array<Omit<User, "id">>;
+async function seedDocumentTypes() {
+  console.log("Seeding document types...");
+
+  for (const docType of DOCUMENT_TYPES) {
+    await prisma.documentType.upsert({
+      where: { code: docType.code },
+      update: { name: docType.name },
+      create: docType,
+    });
+  }
+
+  console.log(`Seeded ${DOCUMENT_TYPES.length} document type(s)`);
+}
 
 (async () => {
   try {
-    await Promise.all(
-      DEFAULT_USERS.map((user) =>
-        prisma.user.upsert({
-          where: {
-            email: user.email!,
-          },
-          update: {
-            ...user,
-          },
-          create: {
-            ...user,
-          },
-        })
-      )
-    );
+    await seedDocumentTypes();
+    console.log("Seed completed successfully");
   } catch (error) {
-    console.error(error);
+    console.error("Seed failed:", error);
     process.exit(1);
   } finally {
     await prisma.$disconnect();
