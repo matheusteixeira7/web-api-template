@@ -1,5 +1,5 @@
-import { z } from 'zod';
 import { cpf } from 'cpf-cnpj-validator';
+import { z } from 'zod';
 import type { Patient } from '../entities/patient.entity';
 
 /**
