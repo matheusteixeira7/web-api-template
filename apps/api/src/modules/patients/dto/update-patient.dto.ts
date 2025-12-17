@@ -25,7 +25,7 @@ export const updatePatientBodySchema = z.object({
   phone: z
     .string()
     .min(10, 'Telefone invalido')
-    .regex(phoneRegex, 'Telefone deve conter apenas numeros')
+    .regex(phoneRegex, 'Telefone invalido. Use apenas numeros, espacos, parenteses, + ou -')
     .optional(),
   email: z.string().email().nullable().optional(),
   dateOfBirth: z.coerce.date().nullable().optional(),

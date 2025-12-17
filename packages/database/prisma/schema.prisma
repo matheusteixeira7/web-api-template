@@ -12,6 +12,21 @@ enum UserRole {
   ADMIN
 }
 
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  CHECKED_IN
+  COMPLETED
+  NO_SHOW
+  CANCELLED
+}
+
+enum BookingSource {
+  MANUAL
+  PUBLIC_LINK
+  API
+}
+
 model User {
   id            String    @id @default(uuid())
   email         String    @unique
@@ -30,6 +45,11 @@ model User {
   passwordResetTokens PasswordResetToken[]
   oauthAccounts       OAuthAccount[]
   provider            Provider?
+
+  // Appointments relations
+  createdAppointments        Appointment[]            @relation("CreatedByUser")
+  changedAppointmentStatuses AppointmentStatusEvent[] @relation("ChangedByUser")
+  createdBlockedTimeSlots    BlockedTimeSlot[]        @relation("CreatedByUser")
 
   @@map("users")
 }
@@ -53,6 +73,7 @@ model Clinic {
   locations        ClinicLocation[]
   patients         Patient[]
   patientDocuments PatientDocument[]
+  appointments     Appointment[]
 
   @@map("clinics")
 }
@@ -116,6 +137,8 @@ model ClinicLocation {
   deletedAt     DateTime? @map("deleted_at")
 
   providerLocations ProviderLocation[]
+  appointments      Appointment[]
+  blockedTimeSlots  BlockedTimeSlot[]
 
   @@map("clinic_locations")
 }
@@ -135,6 +158,8 @@ model Provider {
   deletedAt                  DateTime? @map("deleted_at")
 
   providerLocations ProviderLocation[]
+  appointments      Appointment[]
+  blockedTimeSlots  BlockedTimeSlot[]
 
   @@map("providers")
 }
@@ -165,7 +190,8 @@ model Patient {
   updatedAt       DateTime  @updatedAt @map("updated_at")
   deletedAt       DateTime? @map("deleted_at")
 
-  documents PatientDocument[]
+  documents    PatientDocument[]
+  appointments Appointment[]
 
   @@index([clinicId])
   @@index([clinicId, phone])
@@ -202,4 +228,81 @@ model PatientDocument {
   @@unique([clinicId, documentTypeId, value])
   @@index([patientId])
   @@map("patient_documents")
+}
+
+// ============================================
+// APPOINTMENT TABLES
+// ============================================
+
+model Appointment {
+  id               String            @id @default(uuid())
+  clinicId         String            @map("clinic_id")
+  clinic           Clinic            @relation(fields: [clinicId], references: [id])
+  patientId        String            @map("patient_id")
+  patient          Patient           @relation(fields: [patientId], references: [id])
+  providerId       String            @map("provider_id")
+  provider         Provider          @relation(fields: [providerId], references: [id])
+  locationId       String?           @map("location_id")
+  location         ClinicLocation?   @relation(fields: [locationId], references: [id])
+  appointmentStart DateTime          @map("appointment_start")
+  appointmentEnd   DateTime          @map("appointment_end")
+  // Denormalized fields for query performance
+  patientName      String            @map("patient_name")
+  patientPhone     String            @map("patient_phone")
+  providerName     String            @map("provider_name")
+  status           AppointmentStatus @default(SCHEDULED)
+  notes            String?
+  bookingSource    BookingSource?    @map("booking_source")
+  confirmedAt      DateTime?         @map("confirmed_at")
+  checkedInAt      DateTime?         @map("checked_in_at")
+  createdById      String?           @map("created_by_id")
+  createdBy        User?             @relation("CreatedByUser", fields: [createdById], references: [id])
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  deletedAt        DateTime?         @map("deleted_at")
+
+  statusEvents AppointmentStatusEvent[]
+
+  @@index([clinicId])
+  @@index([patientId])
+  @@index([providerId])
+  @@index([status])
+  @@index([clinicId, appointmentStart])
+  @@index([providerId, appointmentStart])
+  @@map("appointments")
+}
+
+model AppointmentStatusEvent {
+  id             String             @id @default(uuid())
+  appointmentId  String             @map("appointment_id")
+  appointment    Appointment        @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  previousStatus AppointmentStatus? @map("previous_status")
+  newStatus      AppointmentStatus  @map("new_status")
+  changedById    String?            @map("changed_by_id")
+  changedBy      User?              @relation("ChangedByUser", fields: [changedById], references: [id])
+  changedAt      DateTime           @default(now()) @map("changed_at")
+  notes          String?
+
+  @@index([appointmentId])
+  @@index([appointmentId, changedAt])
+  @@map("appointment_status_events")
+}
+
+model BlockedTimeSlot {
+  id            String          @id @default(uuid())
+  providerId    String          @map("provider_id")
+  provider      Provider        @relation(fields: [providerId], references: [id])
+  locationId    String?         @map("location_id")
+  location      ClinicLocation? @relation(fields: [locationId], references: [id])
+  startDatetime DateTime        @map("start_datetime")
+  endDatetime   DateTime        @map("end_datetime")
+  reason        String?
+  createdById   String?         @map("created_by_id")
+  createdBy     User?           @relation("CreatedByUser", fields: [createdById], references: [id])
+  createdAt     DateTime        @default(now()) @map("created_at")
+
+  @@index([providerId])
+  @@index([providerId, startDatetime, endDatetime])
+  @@index([startDatetime, endDatetime])
+  @@map("blocked_time_slots")
 }
