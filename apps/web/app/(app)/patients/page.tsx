@@ -1,9 +1,19 @@
+import { Suspense } from "react";
+import { IconLoader2 } from "@tabler/icons-react";
 import { PatientsTable } from "./_components/patients-table";
 
 export const metadata = {
   title: "Pacientes | HealthSync",
   description: "Gerencie os pacientes da sua clinica",
 };
+
+function PatientsTableFallback() {
+  return (
+    <div className="flex h-64 items-center justify-center">
+      <IconLoader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+    </div>
+  );
+}
 
 export default function PatientsPage() {
   return (
@@ -14,7 +24,9 @@ export default function PatientsPage() {
           Cadastre e gerencie os pacientes da clinica.
         </p>
       </div>
-      <PatientsTable />
+      <Suspense fallback={<PatientsTableFallback />}>
+        <PatientsTable />
+      </Suspense>
     </div>
   );
 }

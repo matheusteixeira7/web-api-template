@@ -3,7 +3,7 @@
 import { Loader2, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -18,7 +18,7 @@ import { api, ApiError } from "@/lib/api";
 
 type Status = "loading" | "error";
 
-export default function GoogleCallbackPage() {
+function GoogleCallbackContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const code = searchParams.get("code");
@@ -64,36 +64,58 @@ export default function GoogleCallbackPage() {
   }, [code, router]);
 
   return (
-    <div className="bg-muted flex min-h-svh flex-col items-center justify-center p-6">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-xl">
-            {status === "loading" ? "Autenticando..." : "Falha na autenticação"}
-          </CardTitle>
-          <CardDescription>
-            {status === "loading"
-              ? "Conectando com sua conta Google"
-              : "Não foi possível completar o login"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center gap-4">
-          {status === "loading" && (
-            <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
-          )}
+    <Card className="w-full max-w-md">
+      <CardHeader className="text-center">
+        <CardTitle className="text-xl">
+          {status === "loading" ? "Autenticando..." : "Falha na autenticação"}
+        </CardTitle>
+        <CardDescription>
+          {status === "loading"
+            ? "Conectando com sua conta Google"
+            : "Não foi possível completar o login"}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col items-center gap-4">
+        {status === "loading" && (
+          <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
+        )}
 
-          {status === "error" && (
-            <>
-              <XCircle className="h-12 w-12 text-destructive" />
-              <p className="text-center text-sm text-destructive">
-                {errorMessage}
-              </p>
-              <Button asChild variant="outline" className="w-full">
-                <Link href="/auth/login">Voltar para Login</Link>
-              </Button>
-            </>
-          )}
-        </CardContent>
-      </Card>
+        {status === "error" && (
+          <>
+            <XCircle className="h-12 w-12 text-destructive" />
+            <p className="text-center text-sm text-destructive">
+              {errorMessage}
+            </p>
+            <Button asChild variant="outline" className="w-full">
+              <Link href="/auth/login">Voltar para Login</Link>
+            </Button>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <Card className="w-full max-w-md">
+      <CardHeader className="text-center">
+        <CardTitle className="text-xl">Autenticando...</CardTitle>
+        <CardDescription>Conectando com sua conta Google</CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col items-center gap-4">
+        <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
+      </CardContent>
+    </Card>
+  );
+}
+
+export default function GoogleCallbackPage() {
+  return (
+    <div className="bg-muted flex min-h-svh flex-col items-center justify-center p-6">
+      <Suspense fallback={<LoadingFallback />}>
+        <GoogleCallbackContent />
+      </Suspense>
     </div>
   );
 }

@@ -24,6 +24,10 @@ import {
   type FindProvidersQueryDto,
 } from '../dto/find-provider.dto';
 import {
+  providerAvailabilityQuerySchema,
+  type ProviderAvailabilityQueryDto,
+} from '../dto/provider-availability.dto';
+import {
   updateProviderBodySchema,
   type UpdateProviderBodyDto,
 } from '../dto/update-provider.dto';
@@ -31,6 +35,7 @@ import { CreateProviderUseCase } from '../use-cases/create-provider.usecase';
 import { DeleteProviderUseCase } from '../use-cases/delete-provider.usecase';
 import { FindProviderByIdUseCase } from '../use-cases/find-provider-by-id.usecase';
 import { FindProvidersByClinicUseCase } from '../use-cases/find-providers-by-clinic.usecase';
+import { GetProviderAvailabilityUseCase } from '../use-cases/get-provider-availability.usecase';
 import { UpdateProviderUseCase } from '../use-cases/update-provider.usecase';
 
 /**
@@ -49,6 +54,7 @@ export class ProvidersController {
     private readonly findProvidersByClinicUseCase: FindProvidersByClinicUseCase,
     private readonly updateProviderUseCase: UpdateProviderUseCase,
     private readonly deleteProviderUseCase: DeleteProviderUseCase,
+    private readonly getProviderAvailabilityUseCase: GetProviderAvailabilityUseCase,
   ) {}
 
   /**
@@ -93,6 +99,28 @@ export class ProvidersController {
     });
 
     return result;
+  }
+
+  /**
+   * Gets available time slots for a provider within a date range.
+   *
+   * @param user - The authenticated user's JWT payload
+   * @param id - The provider's unique identifier
+   * @param query - Date range parameters (startDate, endDate)
+   * @returns Available time slots organized by day
+   */
+  @Get(':id/availability')
+  async getAvailability(
+    @CurrentUser() user: UserPayload,
+    @Param('id') id: string,
+    @Query(new ZodValidationPipe(providerAvailabilityQuerySchema))
+    query: ProviderAvailabilityQueryDto,
+  ) {
+    return this.getProviderAvailabilityUseCase.execute({
+      providerId: id,
+      clinicId: user.clinicId,
+      ...query,
+    });
   }
 
   /**

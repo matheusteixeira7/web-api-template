@@ -32,6 +32,8 @@
     "@workspace/database": "workspace:*",
     "bcryptjs": "^3.0.3",
     "cpf-cnpj-validator": "^1.0.3",
+    "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
     "dotenv": "^17.2.3",
     "fastify": "^5.6.2",
     "jsonwebtoken": "^9.0.3",
@@ -80,6 +82,9 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/$1"
+    }
   }
 }

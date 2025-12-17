@@ -68,7 +68,7 @@ export class CreatePatientUseCase {
         createdPatient.id,
         input.clinicId,
       );
-      return { patient: patientWithDocs! };
+      return { patient: patientWithDocs };
     }
 
     return { patient: createdPatient };

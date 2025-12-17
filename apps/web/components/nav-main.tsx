@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { IconBell, IconCirclePlusFilled, type Icon } from "@tabler/icons-react"
 import { usePathname } from "next/navigation"
 
@@ -11,6 +12,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@workspace/ui/components/sidebar"
+import { NewAppointmentModal } from "@/components/appointments/new-appointment-modal"
 
 export function NavMain({
   items,
@@ -22,6 +24,7 @@ export function NavMain({
   }[]
 }) {
   const pathname = usePathname()
+  const [isNewAppointmentOpen, setIsNewAppointmentOpen] = useState(false)
 
   return (
     <SidebarGroup>
@@ -30,6 +33,7 @@ export function NavMain({
           <SidebarMenuItem className="flex items-center gap-2">
             <SidebarMenuButton
               tooltip="Nova Consulta"
+              onClick={() => setIsNewAppointmentOpen(true)}
               className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
             >
               <IconCirclePlusFilled />
@@ -58,6 +62,12 @@ export function NavMain({
           ))}
         </SidebarMenu>
       </SidebarGroupContent>
+
+      {/* New Appointment Modal */}
+      <NewAppointmentModal
+        open={isNewAppointmentOpen}
+        onOpenChange={setIsNewAppointmentOpen}
+      />
     </SidebarGroup>
   )
 }

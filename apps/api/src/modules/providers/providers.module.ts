@@ -1,6 +1,8 @@
 import { DatabaseModule } from '@/infra/database/database.module';
 import { ProvidersApi } from '@/shared/public-api/interface/providers-api.interface';
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
+import { AppointmentsModule } from '../appointments/appointments.module';
+import { ClinicsModule } from '../clinics/clinics.module';
 import { ProvidersController } from './controllers/providers.controller';
 import { ProvidersFacade } from './public-api/facade/providers.facade';
 import { PrismaProvidersRepository } from './repositories/prisma-providers-repository';
@@ -10,6 +12,7 @@ import { DeleteProviderUseCase } from './use-cases/delete-provider.usecase';
 import { FindProviderByIdUseCase } from './use-cases/find-provider-by-id.usecase';
 import { FindProviderByUserIdUseCase } from './use-cases/find-provider-by-user-id.usecase';
 import { FindProvidersByClinicUseCase } from './use-cases/find-providers-by-clinic.usecase';
+import { GetProviderAvailabilityUseCase } from './use-cases/get-provider-availability.usecase';
 import { UpdateProviderUseCase } from './use-cases/update-provider.usecase';
 
 /**
@@ -32,7 +35,11 @@ import { UpdateProviderUseCase } from './use-cases/update-provider.usecase';
  * ```
  */
 @Module({
-  imports: [DatabaseModule],
+  imports: [
+    DatabaseModule,
+    ClinicsModule,
+    forwardRef(() => AppointmentsModule), // forwardRef to handle circular dependency
+  ],
   controllers: [ProvidersController],
   providers: [
     // Repository binding (internal, used by use cases)
@@ -45,6 +52,7 @@ import { UpdateProviderUseCase } from './use-cases/update-provider.usecase';
     FindProviderByUserIdUseCase,
     UpdateProviderUseCase,
     DeleteProviderUseCase,
+    GetProviderAvailabilityUseCase,
 
     // Facade binding - uses Symbol token
     ProvidersFacade,
