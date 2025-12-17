@@ -2,6 +2,8 @@ import type { AppointmentsApi } from '@/shared/public-api/interface/appointments
 import { Injectable } from '@nestjs/common';
 import type { FindAppointmentsPaginatedResponseDto } from '../../dto/find-appointment.dto';
 import type { Appointment } from '../../entities/appointment.entity';
+import type { BlockedTimeSlot } from '../../entities/blocked-time-slot.entity';
+import { BlockedTimeSlotsRepository } from '../../repositories/blocked-time-slots.repository';
 import type { FindAppointmentsFilters } from '../../types/appointment-filters.types';
 import { FindAppointmentByIdUseCase } from '../../use-cases/find-appointment-by-id.usecase';
 import { FindAppointmentsByClinicUseCase } from '../../use-cases/find-appointments-by-clinic.usecase';
@@ -28,6 +30,7 @@ export class AppointmentsFacade implements AppointmentsApi {
     private readonly findAppointmentsByClinicUseCase: FindAppointmentsByClinicUseCase,
     private readonly findAppointmentsByProviderUseCase: FindAppointmentsByProviderUseCase,
     private readonly findAppointmentsByPatientUseCase: FindAppointmentsByPatientUseCase,
+    private readonly blockedTimeSlotsRepository: BlockedTimeSlotsRepository,
   ) {}
 
   /** @inheritdoc */
@@ -69,6 +72,37 @@ export class AppointmentsFacade implements AppointmentsApi {
       patientId,
       clinicId,
       ...filters,
+    });
+  }
+
+  /** @inheritdoc */
+  async findByProviderForDateRange(
+    providerId: string,
+    clinicId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<Appointment[]> {
+    const result = await this.findAppointmentsByProviderUseCase.execute({
+      providerId,
+      clinicId,
+      startDate,
+      endDate,
+      page: 1,
+      perPage: 1000, // Get all appointments in range
+    });
+    return result.appointments;
+  }
+
+  /** @inheritdoc */
+  async findBlockedSlotsByProvider(
+    providerId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<BlockedTimeSlot[]> {
+    return this.blockedTimeSlotsRepository.findByFilters({
+      providerId,
+      startDate,
+      endDate,
     });
   }
 }

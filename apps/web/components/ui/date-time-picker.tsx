@@ -1,4 +1,4 @@
-import { Calendar } from "@/components/calendar/calendar";
+import { Calendar } from "@workspace/ui/components/calendar";
 import { useCalendar } from "@/components/calendar/contexts/calendar-context";
 import type { TEventFormData } from "@/components/calendar/schemas";
 import { Button } from "@workspace/ui/components/button";

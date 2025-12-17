@@ -1,6 +1,47 @@
 import { z } from "zod";
 
 /**
+ * Working hours for a single day.
+ */
+export interface DayHours {
+  start: string; // "HH:mm"
+  end: string; // "HH:mm"
+}
+
+/**
+ * Working hours schedule per day of week.
+ * Keys: "0" = Sunday, "1" = Monday, ... "6" = Saturday
+ * Matches JavaScript's Date.getDay() return values.
+ */
+export interface WorkingHours {
+  [key: string]: DayHours | undefined;
+}
+
+/**
+ * Weekday configuration for the working hours editor.
+ */
+export const WEEKDAYS = [
+  { key: "1", label: "Segunda-feira" },
+  { key: "2", label: "Terca-feira" },
+  { key: "3", label: "Quarta-feira" },
+  { key: "4", label: "Quinta-feira" },
+  { key: "5", label: "Sexta-feira" },
+  { key: "6", label: "Sabado" },
+  { key: "0", label: "Domingo" },
+] as const;
+
+/**
+ * Default working hours: Monday-Friday 08:00-18:00.
+ */
+export const DEFAULT_WORKING_HOURS: WorkingHours = {
+  "1": { start: "08:00", end: "18:00" },
+  "2": { start: "08:00", end: "18:00" },
+  "3": { start: "08:00", end: "18:00" },
+  "4": { start: "08:00", end: "18:00" },
+  "5": { start: "08:00", end: "18:00" },
+};
+
+/**
  * Provider entity type (matches backend).
  */
 export const providerSchema = z.object({
@@ -19,6 +60,19 @@ export const providerSchema = z.object({
 export type Provider = z.infer<typeof providerSchema>;
 
 /**
+ * Zod schema for day hours validation.
+ */
+const dayHoursSchema = z.object({
+  start: z.string().regex(/^\d{2}:\d{2}$/, "Formato invalido (HH:mm)"),
+  end: z.string().regex(/^\d{2}:\d{2}$/, "Formato invalido (HH:mm)"),
+});
+
+/**
+ * Zod schema for working hours validation.
+ */
+const workingHoursSchema = z.record(dayHoursSchema.optional());
+
+/**
  * Create provider form schema.
  */
 export const createProviderSchema = z.object({
@@ -29,6 +83,7 @@ export const createProviderSchema = z.object({
     .int()
     .positive("Duracao deve ser positiva")
     .default(30),
+  workingHours: workingHoursSchema.optional(),
 });
 
 export type CreateProviderInput = z.infer<typeof createProviderSchema>;
@@ -40,6 +95,7 @@ export const updateProviderSchema = z.object({
   name: z.string().min(1, "Nome e obrigatorio").optional(),
   specialty: z.string().nullable().optional(),
   defaultAppointmentDuration: z.number().int().positive().optional(),
+  workingHours: workingHoursSchema.optional(),
 });
 
 export type UpdateProviderInput = z.infer<typeof updateProviderSchema>;

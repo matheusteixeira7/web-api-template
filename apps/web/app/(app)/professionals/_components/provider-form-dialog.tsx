@@ -27,9 +27,12 @@ import {
 import { useCreateProvider, useUpdateProvider } from "@/hooks/use-providers";
 import {
   createProviderSchema,
+  DEFAULT_WORKING_HOURS,
   type Provider,
   type CreateProviderInput,
+  type WorkingHours,
 } from "@/lib/validations/provider";
+import { WorkingHoursEditor } from "@/components/ui/working-hours-editor";
 
 /**
  * Common specialties in Brazilian clinics.
@@ -75,6 +78,9 @@ export function ProviderFormDialog({
   const [name, setName] = useState("");
   const [specialty, setSpecialty] = useState<string>("");
   const [duration, setDuration] = useState(30);
+  const [workingHours, setWorkingHours] = useState<WorkingHours>(
+    DEFAULT_WORKING_HOURS
+  );
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const createMutation = useCreateProvider();
@@ -89,10 +95,14 @@ export function ProviderFormDialog({
         setName(provider.name);
         setSpecialty(provider.specialty || "");
         setDuration(provider.defaultAppointmentDuration);
+        setWorkingHours(
+          (provider.workingHours as WorkingHours) ?? DEFAULT_WORKING_HOURS
+        );
       } else {
         setName("");
         setSpecialty("");
         setDuration(30);
+        setWorkingHours(DEFAULT_WORKING_HOURS);
       }
       setErrors({});
     }
@@ -106,6 +116,7 @@ export function ProviderFormDialog({
       name: name.trim(),
       specialty: specialty || undefined,
       defaultAppointmentDuration: duration,
+      workingHours,
     };
 
     // Validate with Zod
@@ -136,7 +147,7 @@ export function ProviderFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {isEditMode ? "Editar Profissional" : "Novo Profissional"}
@@ -206,6 +217,12 @@ export function ProviderFormDialog({
                 <FieldError>{errors.defaultAppointmentDuration}</FieldError>
               )}
             </Field>
+
+            <WorkingHoursEditor
+              value={workingHours}
+              onChange={setWorkingHours}
+              disabled={isPending}
+            />
           </FieldGroup>
 
           <DialogFooter className="mt-6">

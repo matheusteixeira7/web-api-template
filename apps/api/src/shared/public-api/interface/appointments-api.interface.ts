@@ -1,5 +1,6 @@
 import type { FindAppointmentsPaginatedResponseDto } from '@/modules/appointments/dto/find-appointment.dto';
 import type { Appointment } from '@/modules/appointments/entities/appointment.entity';
+import type { BlockedTimeSlot } from '@/modules/appointments/entities/blocked-time-slot.entity';
 import type { FindAppointmentsFilters } from '@/modules/appointments/types/appointment-filters.types';
 
 /**
@@ -59,6 +60,34 @@ export interface AppointmentsApi {
     clinicId: string,
     filters?: Partial<FindAppointmentsFilters>,
   ): Promise<FindAppointmentsPaginatedResponseDto>;
+
+  /**
+   * Find appointments for a provider within a date range (for availability calculation)
+   * @param providerId Provider unique identifier
+   * @param clinicId Clinic unique identifier for access control
+   * @param startDate Start of the date range
+   * @param endDate End of the date range
+   * @returns Array of appointments within the date range
+   */
+  findByProviderForDateRange(
+    providerId: string,
+    clinicId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<Appointment[]>;
+
+  /**
+   * Find blocked time slots for a provider within a date range
+   * @param providerId Provider unique identifier
+   * @param startDate Start of the date range
+   * @param endDate End of the date range
+   * @returns Array of blocked time slots within the date range
+   */
+  findBlockedSlotsByProvider(
+    providerId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<BlockedTimeSlot[]>;
 }
 
 /**

@@ -1,6 +1,7 @@
 import { DatabaseModule } from '@/infra/database/database.module';
 import { AppointmentsApi } from '@/shared/public-api/interface/appointments-api.interface';
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
+import { ClinicsModule } from '../clinics/clinics.module';
 import { PatientsModule } from '../patients/patients.module';
 import { ProvidersModule } from '../providers/providers.module';
 
@@ -43,7 +44,7 @@ import { AppointmentsFacade } from './public-api/facade/appointments.facade';
  * Exports only the AppointmentsApi Symbol for external module access.
  */
 @Module({
-  imports: [DatabaseModule, PatientsModule, ProvidersModule],
+  imports: [DatabaseModule, ClinicsModule, PatientsModule, forwardRef(() => ProvidersModule)],
   controllers: [AppointmentsController, BlockedTimeSlotsController],
   providers: [
     // Repository bindings
