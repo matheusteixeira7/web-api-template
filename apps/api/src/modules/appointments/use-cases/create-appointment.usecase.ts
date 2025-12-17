@@ -12,8 +12,8 @@ import type {
   CreateAppointmentInputDto,
   CreateAppointmentResponseDto,
 } from '../dto/create-appointment.dto';
-import { Appointment } from '../entities/appointment.entity';
 import { AppointmentStatusEvent } from '../entities/appointment-status-event.entity';
+import { Appointment } from '../entities/appointment.entity';
 import { AppointmentsRepository } from '../repositories/appointments.repository';
 import { BlockedTimeSlotsRepository } from '../repositories/blocked-time-slots.repository';
 import { BlockedTimeSlotError } from './errors/blocked-time-slot.error';
@@ -134,18 +134,21 @@ export class CreateAppointmentUseCase {
       status: 'SCHEDULED',
     });
 
-    const createdAppointment =
-      await this.appointmentsRepository.create(appointment);
-
-    // 7. Create initial status event
+    // 7. Create initial status event (will be created in same transaction)
     const statusEvent = new AppointmentStatusEvent({
-      appointmentId: createdAppointment.id,
+      appointmentId: appointment.id,
       previousStatus: null,
       newStatus: 'SCHEDULED',
       changedById: createdById ?? null,
       notes: 'Appointment created',
     });
-    await this.appointmentsRepository.createStatusEvent(statusEvent);
+
+    // 8. Create appointment and status event in a single transaction
+    const createdAppointment =
+      await this.appointmentsRepository.createWithStatusEvent(
+        appointment,
+        statusEvent,
+      );
 
     return {
       appointment: createdAppointment,

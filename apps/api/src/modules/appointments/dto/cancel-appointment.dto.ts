@@ -11,7 +11,9 @@ export const cancelAppointmentBodySchema = z.object({
 });
 
 /** Inferred type from the cancel appointment body schema */
-export type CancelAppointmentBodyDto = z.infer<typeof cancelAppointmentBodySchema>;
+export type CancelAppointmentBodyDto = z.infer<
+  typeof cancelAppointmentBodySchema
+>;
 
 /**
  * Zod schema for the use case input, extending body schema with identifiers.

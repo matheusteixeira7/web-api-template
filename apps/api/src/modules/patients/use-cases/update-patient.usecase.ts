@@ -85,7 +85,7 @@ export class UpdatePatientUseCase {
         patientId,
         clinicId,
       );
-      return { patient: patientWithDocs! };
+      return { patient: patientWithDocs };
     }
 
     return { patient: updatedPatient };

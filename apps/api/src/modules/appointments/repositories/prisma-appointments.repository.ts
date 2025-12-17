@@ -182,19 +182,59 @@ export class PrismaAppointmentsRepository extends AppointmentsRepository {
   async findByPatientId(
     patientId: string,
     clinicId: string,
-  ): Promise<Appointment[]> {
-    const appointments = await this.prisma.client.appointment.findMany({
-      where: {
-        patientId,
-        clinicId,
-        deletedAt: null,
-      },
-      orderBy: {
-        appointmentStart: 'desc',
-      },
-    });
+    filters: FindAppointmentsFilters,
+  ): Promise<{ appointments: Appointment[]; total: number }> {
+    const { startDate, endDate, status, sortBy, sortDir, page, perPage } =
+      filters;
 
-    return appointments.map((appointment) => this.mapToEntity(appointment));
+    // Build where clause
+    const where: Prisma.AppointmentWhereInput = {
+      patientId,
+      clinicId,
+      deletedAt: null,
+    };
+
+    // Status filter
+    if (status && status !== 'all') {
+      where.status = status;
+    }
+
+    // Date range filter
+    if (startDate) {
+      where.appointmentStart = {
+        ...(where.appointmentStart as Prisma.DateTimeFilter),
+        gte: startDate,
+      };
+    }
+    if (endDate) {
+      where.appointmentStart = {
+        ...(where.appointmentStart as Prisma.DateTimeFilter),
+        lte: endDate,
+      };
+    }
+
+    // Build orderBy clause
+    const orderBy: Prisma.AppointmentOrderByWithRelationInput = {
+      [sortBy]: sortDir,
+    };
+
+    // Execute query with pagination
+    const [appointments, total] = await Promise.all([
+      this.prisma.client.appointment.findMany({
+        where,
+        orderBy,
+        skip: (page - 1) * perPage,
+        take: perPage,
+      }),
+      this.prisma.client.appointment.count({ where }),
+    ]);
+
+    return {
+      appointments: appointments.map((appointment) =>
+        this.mapToEntity(appointment),
+      ),
+      total,
+    };
   }
 
   /** @inheritdoc */
@@ -219,6 +259,48 @@ export class PrismaAppointmentsRepository extends AppointmentsRepository {
         createdById: data.createdById,
       },
     });
+
+    return this.mapToEntity(createdAppointment);
+  }
+
+  /** @inheritdoc */
+  async createWithStatusEvent(
+    appointment: Appointment,
+    statusEvent: AppointmentStatusEvent,
+  ): Promise<Appointment> {
+    const [createdAppointment] = await this.prisma.client.$transaction([
+      this.prisma.client.appointment.create({
+        data: {
+          id: appointment.id,
+          clinicId: appointment.clinicId,
+          patientId: appointment.patientId,
+          providerId: appointment.providerId,
+          locationId: appointment.locationId,
+          appointmentStart: appointment.appointmentStart,
+          appointmentEnd: appointment.appointmentEnd,
+          patientName: appointment.patientName,
+          patientPhone: appointment.patientPhone,
+          providerName: appointment.providerName,
+          status: appointment.status,
+          notes: appointment.notes,
+          bookingSource: appointment.bookingSource,
+          confirmedAt: appointment.confirmedAt,
+          checkedInAt: appointment.checkedInAt,
+          createdById: appointment.createdById,
+        },
+      }),
+      this.prisma.client.appointmentStatusEvent.create({
+        data: {
+          id: statusEvent.id,
+          appointmentId: statusEvent.appointmentId,
+          previousStatus: statusEvent.previousStatus,
+          newStatus: statusEvent.newStatus,
+          changedById: statusEvent.changedById,
+          changedAt: statusEvent.changedAt,
+          notes: statusEvent.notes,
+        },
+      }),
+    ]);
 
     return this.mapToEntity(createdAppointment);
   }

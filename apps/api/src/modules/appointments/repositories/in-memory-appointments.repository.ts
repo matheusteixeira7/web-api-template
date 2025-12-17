@@ -138,19 +138,70 @@ export class InMemoryAppointmentsRepository extends AppointmentsRepository {
     return Promise.resolve({ appointments, total });
   }
 
-  findByPatientId(patientId: string, clinicId: string): Promise<Appointment[]> {
-    const appointments = this.items.filter(
+  findByPatientId(
+    patientId: string,
+    clinicId: string,
+    filters: FindAppointmentsFilters,
+  ): Promise<{ appointments: Appointment[]; total: number }> {
+    let filtered = this.items.filter(
       (item) =>
         item.patientId === patientId &&
         item.clinicId === clinicId &&
         !item.deletedAt,
     );
-    return Promise.resolve(appointments);
+
+    // Apply status filter
+    if (filters.status && filters.status !== 'all') {
+      filtered = filtered.filter((item) => item.status === filters.status);
+    }
+
+    // Apply date range filter
+    if (filters.startDate) {
+      filtered = filtered.filter(
+        (item) => item.appointmentStart >= filters.startDate,
+      );
+    }
+    if (filters.endDate) {
+      filtered = filtered.filter(
+        (item) => item.appointmentStart <= filters.endDate,
+      );
+    }
+
+    const total = filtered.length;
+
+    // Apply sorting
+    const sortDir = filters.sortDir === 'desc' ? -1 : 1;
+    filtered.sort((a, b) => {
+      const aVal = a[filters.sortBy as keyof Appointment];
+      const bVal = b[filters.sortBy as keyof Appointment];
+      if (aVal === null || aVal === undefined) return 1;
+      if (bVal === null || bVal === undefined) return -1;
+      if (aVal < bVal) return -1 * sortDir;
+      if (aVal > bVal) return 1 * sortDir;
+      return 0;
+    });
+
+    // Apply pagination
+    const start = (filters.page - 1) * filters.perPage;
+    const appointments = filtered.slice(start, start + filters.perPage);
+
+    return Promise.resolve({ appointments, total });
   }
 
   create(data: Appointment): Promise<Appointment> {
     this.items.push(data);
     return Promise.resolve(data);
+  }
+
+  createWithStatusEvent(
+    appointment: Appointment,
+    statusEvent: AppointmentStatusEvent,
+  ): Promise<Appointment> {
+    // In-memory implementation: add both to their respective arrays
+    // In production, this is wrapped in a transaction
+    this.items.push(appointment);
+    this.statusEvents.push(statusEvent);
+    return Promise.resolve(appointment);
   }
 
   save(appointment: Appointment): Promise<Appointment> {

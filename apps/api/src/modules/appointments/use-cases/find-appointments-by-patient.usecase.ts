@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import type { Appointment } from '../entities/appointment.entity';
+import type { FindAppointmentsPaginatedResponseDto } from '../dto/find-appointment.dto';
 import { AppointmentsRepository } from '../repositories/appointments.repository';
+import type {
+  FindAppointmentsByPatientInput,
+  FindAppointmentsFilters,
+} from '../types/appointment-filters.types';
 
 /**
  * Use case for finding appointments by patient within a clinic.
@@ -14,11 +18,40 @@ export class FindAppointmentsByPatientUseCase {
   /**
    * Executes the appointments search operation by patient.
    *
-   * @param patientId - The patient's UUID
-   * @param clinicId - The clinic's UUID for access control
-   * @returns Array of appointment entities
+   * @param input - The input parameters containing patientId, clinicId, and optional filters
+   * @returns Paginated list of appointment entities with total count
    */
-  async execute(patientId: string, clinicId: string): Promise<Appointment[]> {
-    return this.appointmentsRepository.findByPatientId(patientId, clinicId);
+  async execute(
+    input: FindAppointmentsByPatientInput,
+  ): Promise<FindAppointmentsPaginatedResponseDto> {
+    const { patientId, clinicId, ...queryParams } = input;
+
+    // Apply defaults for optional fields
+    const filters: FindAppointmentsFilters = {
+      startDate: queryParams.startDate,
+      endDate: queryParams.endDate,
+      status: queryParams.status ?? 'all',
+      sortBy: queryParams.sortBy ?? 'appointmentStart',
+      sortDir: queryParams.sortDir ?? 'asc',
+      page: queryParams.page ?? 1,
+      perPage: queryParams.perPage ?? 10,
+    };
+
+    const { appointments, total } =
+      await this.appointmentsRepository.findByPatientId(
+        patientId,
+        clinicId,
+        filters,
+      );
+
+    const totalPages = Math.ceil(total / filters.perPage);
+
+    return {
+      appointments,
+      total,
+      page: filters.page,
+      perPage: filters.perPage,
+      totalPages,
+    };
   }
 }

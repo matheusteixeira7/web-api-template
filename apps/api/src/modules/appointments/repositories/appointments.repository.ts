@@ -48,15 +48,17 @@ export abstract class AppointmentsRepository {
   ): Promise<{ appointments: Appointment[]; total: number }>;
 
   /**
-   * Finds appointments for a specific patient within a clinic.
+   * Finds appointments for a specific patient with filters and pagination.
    * @param patientId - The patient's UUID
    * @param clinicId - The clinic's UUID for access control
-   * @returns Array of appointment entities
+   * @param filters - Filter, sort, and pagination options
+   * @returns Object containing appointment entities and total count
    */
   abstract findByPatientId(
     patientId: string,
     clinicId: string,
-  ): Promise<Appointment[]>;
+    filters: FindAppointmentsFilters,
+  ): Promise<{ appointments: Appointment[]; total: number }>;
 
   /**
    * Creates a new appointment in the database.
@@ -64,6 +66,17 @@ export abstract class AppointmentsRepository {
    * @returns The created appointment entity
    */
   abstract create(data: Appointment): Promise<Appointment>;
+
+  /**
+   * Creates a new appointment and its initial status event in a single transaction.
+   * @param appointment - The appointment entity to persist
+   * @param statusEvent - The initial status event entity to persist
+   * @returns The created appointment entity
+   */
+  abstract createWithStatusEvent(
+    appointment: Appointment,
+    statusEvent: AppointmentStatusEvent,
+  ): Promise<Appointment>;
 
   /**
    * Updates an existing appointment in the database.

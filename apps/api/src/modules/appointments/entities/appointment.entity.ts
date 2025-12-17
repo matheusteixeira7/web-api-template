@@ -1,15 +1,11 @@
 import type { WithOptional } from '@/shared/core/default.entity';
 import { randomUUID } from 'crypto';
+import type {
+  AppointmentStatus,
+  BookingSource,
+} from '../types/appointment-status.types';
 
-export type AppointmentStatus =
-  | 'SCHEDULED'
-  | 'CONFIRMED'
-  | 'CHECKED_IN'
-  | 'COMPLETED'
-  | 'NO_SHOW'
-  | 'CANCELLED';
-
-export type BookingSource = 'MANUAL' | 'PUBLIC_LINK' | 'API';
+export type { AppointmentStatus, BookingSource };
 
 /**
  * Appointment entity representing a scheduled appointment between a patient

@@ -18,8 +18,10 @@ import {
   type CreateAppointmentBodyDto,
 } from '../dto/create-appointment.dto';
 import {
+  findAppointmentsByPatientQuerySchema,
   findAppointmentsByProviderQuerySchema,
   findAppointmentsQuerySchema,
+  type FindAppointmentsByPatientQueryDto,
   type FindAppointmentsByProviderQueryDto,
   type FindAppointmentsQueryDto,
 } from '../dto/find-appointment.dto';
@@ -134,19 +136,23 @@ export class AppointmentsController {
    *
    * @param user - The authenticated user's JWT payload
    * @param patientId - The patient's unique identifier
-   * @returns List of appointment entities
+   * @param query - Query parameters for filtering, sorting, and pagination
+   * @returns Paginated list of appointment entities with total count
    */
   @Get('patient/:patientId')
   async findByPatient(
     @CurrentUser() user: UserPayload,
     @Param('patientId') patientId: string,
+    @Query(new ZodValidationPipe(findAppointmentsByPatientQuerySchema))
+    query: FindAppointmentsByPatientQueryDto,
   ) {
-    const appointments = await this.findAppointmentsByPatientUseCase.execute(
+    const result = await this.findAppointmentsByPatientUseCase.execute({
       patientId,
-      user.clinicId,
-    );
+      clinicId: user.clinicId,
+      ...query,
+    });
 
-    return { appointments };
+    return result;
   }
 
   /**

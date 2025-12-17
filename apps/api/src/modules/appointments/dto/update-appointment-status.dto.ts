@@ -1,20 +1,9 @@
 import { z } from 'zod';
-import type {
-  Appointment,
-  AppointmentStatus,
-} from '../entities/appointment.entity';
-
-/**
- * Valid appointment statuses for status updates.
- */
-export const appointmentStatusValues = [
-  'SCHEDULED',
-  'CONFIRMED',
-  'CHECKED_IN',
-  'COMPLETED',
-  'NO_SHOW',
-  'CANCELLED',
-] as const;
+import type { Appointment } from '../entities/appointment.entity';
+import {
+  appointmentStatusValues,
+  type AppointmentStatus,
+} from '../types/appointment-status.types';
 
 /**
  * Zod schema for validating the update appointment status HTTP request body.

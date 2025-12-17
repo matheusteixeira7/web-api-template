@@ -30,13 +30,6 @@ describe('UpdateAppointmentUseCase', () => {
   const patientId = 'patient-123';
   const providerId = 'provider-123';
 
-  const mockPatient = new Patient({
-    id: patientId,
-    clinicId,
-    name: 'John Doe',
-    phone: '11999999999',
-  });
-
   const mockProvider = new Provider({
     id: providerId,
     clinicId,

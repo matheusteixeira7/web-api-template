@@ -48,12 +48,17 @@ export interface AppointmentsApi {
   ): Promise<FindAppointmentsPaginatedResponseDto>;
 
   /**
-   * Find all appointments for a specific patient within a clinic
+   * Find all appointments for a specific patient with optional filters
    * @param patientId Patient unique identifier
    * @param clinicId Clinic unique identifier for access control
-   * @returns Array of appointment entities
+   * @param filters Optional filter, sort, and pagination options
+   * @returns Paginated response with appointments and total count
    */
-  findByPatientId(patientId: string, clinicId: string): Promise<Appointment[]>;
+  findByPatientId(
+    patientId: string,
+    clinicId: string,
+    filters?: Partial<FindAppointmentsFilters>,
+  ): Promise<FindAppointmentsPaginatedResponseDto>;
 }
 
 /**

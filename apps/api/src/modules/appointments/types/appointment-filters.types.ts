@@ -1,16 +1,18 @@
-import type { AppointmentStatus } from '../entities/appointment.entity';
+import {
+  appointmentStatusValues,
+  type AppointmentStatus,
+} from './appointment-status.types';
+
+// Re-export for convenience
+export type { AppointmentStatus };
+export { appointmentStatusValues };
 
 /**
- * Allowed values for appointment status filter.
+ * Allowed values for appointment status filter (includes 'all' option).
  */
 export const appointmentStatusFilterValues = [
   'all',
-  'SCHEDULED',
-  'CONFIRMED',
-  'CHECKED_IN',
-  'COMPLETED',
-  'NO_SHOW',
-  'CANCELLED',
+  ...appointmentStatusValues,
 ] as const;
 export type AppointmentStatusFilter =
   (typeof appointmentStatusFilterValues)[number];
@@ -82,17 +84,19 @@ export interface FindAppointmentsByProviderInput {
 }
 
 /**
- * Valid status transitions for appointments.
- * Used to validate status change requests.
+ * Input parameters for finding appointments by patient.
  */
-export const validStatusTransitions: Record<
-  AppointmentStatus,
-  AppointmentStatus[]
-> = {
-  SCHEDULED: ['CONFIRMED', 'CANCELLED'],
-  CONFIRMED: ['CHECKED_IN', 'NO_SHOW', 'CANCELLED'],
-  CHECKED_IN: ['COMPLETED', 'NO_SHOW'],
-  COMPLETED: [],
-  NO_SHOW: [],
-  CANCELLED: [],
-};
+export interface FindAppointmentsByPatientInput {
+  patientId: string;
+  clinicId: string;
+  startDate?: Date;
+  endDate?: Date;
+  status?: AppointmentStatusFilter;
+  sortBy?: SortByColumn;
+  sortDir?: SortDirection;
+  page?: number;
+  perPage?: number;
+}
+
+// Re-export validStatusTransitions from the central status types
+export { validStatusTransitions } from './appointment-status.types';

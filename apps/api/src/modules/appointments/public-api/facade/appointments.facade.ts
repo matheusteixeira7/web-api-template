@@ -63,7 +63,12 @@ export class AppointmentsFacade implements AppointmentsApi {
   async findByPatientId(
     patientId: string,
     clinicId: string,
-  ): Promise<Appointment[]> {
-    return this.findAppointmentsByPatientUseCase.execute(patientId, clinicId);
+    filters?: Partial<FindAppointmentsFilters>,
+  ): Promise<FindAppointmentsPaginatedResponseDto> {
+    return this.findAppointmentsByPatientUseCase.execute({
+      patientId,
+      clinicId,
+      ...filters,
+    });
   }
 }

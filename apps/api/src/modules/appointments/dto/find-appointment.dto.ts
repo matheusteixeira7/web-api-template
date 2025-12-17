@@ -50,6 +50,26 @@ export type FindAppointmentsByProviderQueryDto = z.output<
   typeof findAppointmentsByProviderQuerySchema
 >;
 
+/**
+ * Zod schema for find appointments by patient query parameters.
+ */
+export const findAppointmentsByPatientQuerySchema = z.object({
+  startDate: z.coerce.date().optional(),
+  endDate: z.coerce.date().optional(),
+  status: z.enum(appointmentStatusFilterValues).default('all'),
+  sortBy: z.enum(sortByValues).default('appointmentStart'),
+  sortDir: z.enum(sortDirValues).default('asc'),
+  page: z.coerce.number().int().positive().default(1),
+  perPage: z.coerce.number().int().positive().max(100).default(10),
+});
+
+/**
+ * Output type from the find appointments by patient query schema.
+ */
+export type FindAppointmentsByPatientQueryDto = z.output<
+  typeof findAppointmentsByPatientQuerySchema
+>;
+
 /** Response DTO containing a single appointment entity */
 export interface FindAppointmentResponseDto {
   appointment: Appointment;
