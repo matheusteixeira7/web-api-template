@@ -90,10 +90,14 @@ export class InMemoryAppointmentsRepository extends AppointmentsRepository {
 
   findByProviderId(
     providerId: string,
+    clinicId: string,
     filters: FindAppointmentsFilters,
   ): Promise<{ appointments: Appointment[]; total: number }> {
     let filtered = this.items.filter(
-      (item) => item.providerId === providerId && !item.deletedAt,
+      (item) =>
+        item.providerId === providerId &&
+        item.clinicId === clinicId &&
+        !item.deletedAt,
     );
 
     // Apply status filter

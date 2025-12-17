@@ -37,11 +37,13 @@ export abstract class AppointmentsRepository {
   /**
    * Finds appointments for a specific provider with filters and pagination.
    * @param providerId - The provider's UUID
+   * @param clinicId - The clinic's UUID for access control
    * @param filters - Filter, sort, and pagination options
    * @returns Object containing appointment entities and total count
    */
   abstract findByProviderId(
     providerId: string,
+    clinicId: string,
     filters: FindAppointmentsFilters,
   ): Promise<{ appointments: Appointment[]; total: number }>;
 

@@ -37,11 +37,13 @@ export interface AppointmentsApi {
   /**
    * Find all appointments for a specific provider with optional filters
    * @param providerId Provider unique identifier
+   * @param clinicId Clinic unique identifier for access control
    * @param filters Optional filter, sort, and pagination options
    * @returns Paginated response with appointments and total count
    */
   findByProviderId(
     providerId: string,
+    clinicId: string,
     filters?: Partial<FindAppointmentsFilters>,
   ): Promise<FindAppointmentsPaginatedResponseDto>;
 

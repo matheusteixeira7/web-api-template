@@ -122,6 +122,7 @@ export class PrismaAppointmentsRepository extends AppointmentsRepository {
   /** @inheritdoc */
   async findByProviderId(
     providerId: string,
+    clinicId: string,
     filters: FindAppointmentsFilters,
   ): Promise<{ appointments: Appointment[]; total: number }> {
     const { startDate, endDate, status, sortBy, sortDir, page, perPage } =
@@ -130,6 +131,7 @@ export class PrismaAppointmentsRepository extends AppointmentsRepository {
     // Build where clause
     const where: Prisma.AppointmentWhereInput = {
       providerId,
+      clinicId,
       deletedAt: null,
     };
 

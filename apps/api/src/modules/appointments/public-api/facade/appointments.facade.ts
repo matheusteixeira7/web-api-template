@@ -49,11 +49,12 @@ export class AppointmentsFacade implements AppointmentsApi {
   /** @inheritdoc */
   async findByProviderId(
     providerId: string,
+    clinicId: string,
     filters?: Partial<FindAppointmentsFilters>,
   ): Promise<FindAppointmentsPaginatedResponseDto> {
     return this.findAppointmentsByProviderUseCase.execute({
       providerId,
-      clinicId: '', // Note: clinicId validation happens in use case via provider lookup
+      clinicId,
       ...filters,
     });
   }

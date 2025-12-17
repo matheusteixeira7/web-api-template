@@ -24,7 +24,7 @@ export class FindAppointmentsByProviderUseCase {
   async execute(
     input: FindAppointmentsByProviderInput,
   ): Promise<FindAppointmentsPaginatedResponseDto> {
-    const { providerId, ...queryParams } = input;
+    const { providerId, clinicId, ...queryParams } = input;
 
     // Apply defaults for optional fields
     const filters: FindAppointmentsFilters = {
@@ -38,7 +38,11 @@ export class FindAppointmentsByProviderUseCase {
     };
 
     const { appointments, total } =
-      await this.appointmentsRepository.findByProviderId(providerId, filters);
+      await this.appointmentsRepository.findByProviderId(
+        providerId,
+        clinicId,
+        filters,
+      );
 
     const totalPages = Math.ceil(total / filters.perPage);
 
