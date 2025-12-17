@@ -25,7 +25,6 @@ import { BlockedTimeSlotsRepository } from '../repositories/blocked-time-slots.r
 import { AppointmentSpansMidnightError } from './errors/appointment-spans-midnight.error';
 import { BlockedTimeSlotError } from './errors/blocked-time-slot.error';
 import { OutsideWorkingHoursError } from './errors/outside-working-hours.error';
-import { ProviderNotAvailableError } from './errors/provider-not-available.error';
 
 interface WorkingHoursDay {
   start: string;
@@ -119,18 +118,7 @@ export class CreateAppointmentUseCase {
       throw new BlockedTimeSlotError();
     }
 
-    // 6. Check provider availability (no conflicting appointments)
-    const isAvailable =
-      await this.appointmentsRepository.checkProviderAvailability(
-        providerId,
-        appointmentStart,
-        appointmentEnd,
-      );
-    if (!isAvailable) {
-      throw new ProviderNotAvailableError();
-    }
-
-    // 7. Create appointment with denormalized data
+    // 6. Create appointment with denormalized data
     const appointment = new Appointment({
       clinicId,
       patientId,
@@ -147,7 +135,7 @@ export class CreateAppointmentUseCase {
       status: 'SCHEDULED',
     });
 
-    // 8. Create initial status event (will be created in same transaction)
+    // 7. Create initial status event (will be created in same transaction)
     const statusEvent = new AppointmentStatusEvent({
       appointmentId: appointment.id,
       previousStatus: null,
@@ -156,9 +144,10 @@ export class CreateAppointmentUseCase {
       notes: 'Appointment created',
     });
 
-    // 9. Create appointment and status event in a single transaction
+    // 8. Atomically check availability and create appointment with status event
+    // This prevents race conditions where two requests could create overlapping appointments
     const createdAppointment =
-      await this.appointmentsRepository.createWithStatusEvent(
+      await this.appointmentsRepository.createWithAvailabilityCheck(
         appointment,
         statusEvent,
       );

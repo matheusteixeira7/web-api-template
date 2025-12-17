@@ -8,6 +8,7 @@ import {
 import { Appointment } from '../entities/appointment.entity';
 import { AppointmentStatusEvent } from '../entities/appointment-status-event.entity';
 import type { FindAppointmentsFilters } from '../types/appointment-filters.types';
+import { ProviderNotAvailableError } from '../use-cases/errors/provider-not-available.error';
 import { AppointmentsRepository } from './appointments.repository';
 
 /**
@@ -203,6 +204,80 @@ export class PrismaAppointmentsRepository extends AppointmentsRepository {
     ]);
 
     return this.mapToEntity(createdAppointment);
+  }
+
+  /** @inheritdoc */
+  async createWithAvailabilityCheck(
+    appointment: Appointment,
+    statusEvent: AppointmentStatusEvent,
+  ): Promise<Appointment> {
+    return this.prisma.client.$transaction(
+      async (tx) => {
+        // Check for conflicts within the transaction
+        const conflictingAppointment = await tx.appointment.findFirst({
+          where: {
+            providerId: appointment.providerId,
+            deletedAt: null,
+            status: {
+              notIn: ['CANCELLED', 'NO_SHOW'],
+            },
+            AND: [
+              {
+                appointmentStart: { lt: appointment.appointmentEnd },
+              },
+              {
+                appointmentEnd: { gt: appointment.appointmentStart },
+              },
+            ],
+          },
+          select: { id: true },
+        });
+
+        if (conflictingAppointment) {
+          throw new ProviderNotAvailableError();
+        }
+
+        // Create appointment
+        const createdAppointment = await tx.appointment.create({
+          data: {
+            id: appointment.id,
+            clinicId: appointment.clinicId,
+            patientId: appointment.patientId,
+            providerId: appointment.providerId,
+            locationId: appointment.locationId,
+            appointmentStart: appointment.appointmentStart,
+            appointmentEnd: appointment.appointmentEnd,
+            patientName: appointment.patientName,
+            patientPhone: appointment.patientPhone,
+            providerName: appointment.providerName,
+            status: appointment.status,
+            notes: appointment.notes,
+            bookingSource: appointment.bookingSource,
+            confirmedAt: appointment.confirmedAt,
+            checkedInAt: appointment.checkedInAt,
+            createdById: appointment.createdById,
+          },
+        });
+
+        // Create status event
+        await tx.appointmentStatusEvent.create({
+          data: {
+            id: statusEvent.id,
+            appointmentId: statusEvent.appointmentId,
+            previousStatus: statusEvent.previousStatus,
+            newStatus: statusEvent.newStatus,
+            changedById: statusEvent.changedById,
+            changedAt: statusEvent.changedAt,
+            notes: statusEvent.notes,
+          },
+        });
+
+        return this.mapToEntity(createdAppointment);
+      },
+      {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      },
+    );
   }
 
   /** @inheritdoc */

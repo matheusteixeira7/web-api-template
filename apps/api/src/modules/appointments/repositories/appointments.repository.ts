@@ -79,6 +79,20 @@ export abstract class AppointmentsRepository {
   ): Promise<Appointment>;
 
   /**
+   * Atomically checks provider availability and creates appointment with status event.
+   * This method prevents race conditions by performing the availability check
+   * and creation within a single transaction.
+   * @param appointment - The appointment entity to persist
+   * @param statusEvent - The initial status event entity to persist
+   * @returns The created appointment entity
+   * @throws ProviderNotAvailableError if provider has conflicting appointment
+   */
+  abstract createWithAvailabilityCheck(
+    appointment: Appointment,
+    statusEvent: AppointmentStatusEvent,
+  ): Promise<Appointment>;
+
+  /**
    * Updates an existing appointment in the database.
    * @param appointment - The appointment entity with updated data
    * @returns The updated appointment entity

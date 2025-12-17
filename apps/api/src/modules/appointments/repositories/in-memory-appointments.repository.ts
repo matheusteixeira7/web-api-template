@@ -5,6 +5,7 @@ import type {
 import { AppointmentStatusEvent } from '../entities/appointment-status-event.entity';
 import { Appointment } from '../entities/appointment.entity';
 import type { FindAppointmentsFilters } from '../types/appointment-filters.types';
+import { ProviderNotAvailableError } from '../use-cases/errors/provider-not-available.error';
 import { AppointmentsRepository } from './appointments.repository';
 
 /**
@@ -137,6 +138,30 @@ export class InMemoryAppointmentsRepository extends AppointmentsRepository {
   ): Promise<Appointment> {
     // In-memory implementation: add both to their respective arrays
     // In production, this is wrapped in a transaction
+    this.items.push(appointment);
+    this.statusEvents.push(statusEvent);
+    return Promise.resolve(appointment);
+  }
+
+  createWithAvailabilityCheck(
+    appointment: Appointment,
+    statusEvent: AppointmentStatusEvent,
+  ): Promise<Appointment> {
+    // Check for conflicts (simulates the atomic check in production)
+    const hasConflict = this.items.some(
+      (existing) =>
+        existing.providerId === appointment.providerId &&
+        !existing.deletedAt &&
+        existing.status !== 'CANCELLED' &&
+        existing.status !== 'NO_SHOW' &&
+        existing.appointmentStart < appointment.appointmentEnd &&
+        existing.appointmentEnd > appointment.appointmentStart,
+    );
+
+    if (hasConflict) {
+      return Promise.reject(new ProviderNotAvailableError());
+    }
+
     this.items.push(appointment);
     this.statusEvents.push(statusEvent);
     return Promise.resolve(appointment);
