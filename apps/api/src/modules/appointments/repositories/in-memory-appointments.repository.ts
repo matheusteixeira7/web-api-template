@@ -25,9 +25,51 @@ export class InMemoryAppointmentsRepository extends AppointmentsRepository {
     clinicId: string,
     filters: FindAppointmentsFilters,
   ): Promise<{ appointments: Appointment[]; total: number }> {
-    let filtered = this.items.filter(
+    const baseFiltered = this.items.filter(
       (item) => item.clinicId === clinicId && !item.deletedAt,
     );
+    return Promise.resolve(this.applyFiltersAndPagination(baseFiltered, filters));
+  }
+
+  findByProviderId(
+    providerId: string,
+    clinicId: string,
+    filters: FindAppointmentsFilters,
+  ): Promise<{ appointments: Appointment[]; total: number }> {
+    const baseFiltered = this.items.filter(
+      (item) =>
+        item.providerId === providerId &&
+        item.clinicId === clinicId &&
+        !item.deletedAt,
+    );
+    return Promise.resolve(this.applyFiltersAndPagination(baseFiltered, filters));
+  }
+
+  findByPatientId(
+    patientId: string,
+    clinicId: string,
+    filters: FindAppointmentsFilters,
+  ): Promise<{ appointments: Appointment[]; total: number }> {
+    const baseFiltered = this.items.filter(
+      (item) =>
+        item.patientId === patientId &&
+        item.clinicId === clinicId &&
+        !item.deletedAt,
+    );
+    return Promise.resolve(this.applyFiltersAndPagination(baseFiltered, filters));
+  }
+
+  /**
+   * Private helper method to apply common filters, sorting, and pagination.
+   * @param items - Base filtered array of appointments
+   * @param filters - Filter, sort, and pagination options
+   * @returns Object containing filtered appointments and total count
+   */
+  private applyFiltersAndPagination(
+    items: Appointment[],
+    filters: FindAppointmentsFilters,
+  ): { appointments: Appointment[]; total: number } {
+    let filtered = [...items];
 
     // Apply status filter
     if (filters.status && filters.status !== 'all') {
@@ -46,21 +88,17 @@ export class InMemoryAppointmentsRepository extends AppointmentsRepository {
       );
     }
 
-    // Apply provider filter
+    // Apply optional filters (used by findByClinicId)
     if (filters.providerId) {
       filtered = filtered.filter(
         (item) => item.providerId === filters.providerId,
       );
     }
-
-    // Apply patient filter
     if (filters.patientId) {
       filtered = filtered.filter(
         (item) => item.patientId === filters.patientId,
       );
     }
-
-    // Apply location filter
     if (filters.locationId) {
       filtered = filtered.filter(
         (item) => item.locationId === filters.locationId,
@@ -85,107 +123,7 @@ export class InMemoryAppointmentsRepository extends AppointmentsRepository {
     const start = (filters.page - 1) * filters.perPage;
     const appointments = filtered.slice(start, start + filters.perPage);
 
-    return Promise.resolve({ appointments, total });
-  }
-
-  findByProviderId(
-    providerId: string,
-    clinicId: string,
-    filters: FindAppointmentsFilters,
-  ): Promise<{ appointments: Appointment[]; total: number }> {
-    let filtered = this.items.filter(
-      (item) =>
-        item.providerId === providerId &&
-        item.clinicId === clinicId &&
-        !item.deletedAt,
-    );
-
-    // Apply status filter
-    if (filters.status && filters.status !== 'all') {
-      filtered = filtered.filter((item) => item.status === filters.status);
-    }
-
-    // Apply date range filter
-    if (filters.startDate) {
-      filtered = filtered.filter(
-        (item) => item.appointmentStart >= filters.startDate,
-      );
-    }
-    if (filters.endDate) {
-      filtered = filtered.filter(
-        (item) => item.appointmentStart <= filters.endDate,
-      );
-    }
-
-    const total = filtered.length;
-
-    // Apply sorting
-    const sortDir = filters.sortDir === 'desc' ? -1 : 1;
-    filtered.sort((a, b) => {
-      const aVal = a[filters.sortBy as keyof Appointment];
-      const bVal = b[filters.sortBy as keyof Appointment];
-      if (aVal === null || aVal === undefined) return 1;
-      if (bVal === null || bVal === undefined) return -1;
-      if (aVal < bVal) return -1 * sortDir;
-      if (aVal > bVal) return 1 * sortDir;
-      return 0;
-    });
-
-    // Apply pagination
-    const start = (filters.page - 1) * filters.perPage;
-    const appointments = filtered.slice(start, start + filters.perPage);
-
-    return Promise.resolve({ appointments, total });
-  }
-
-  findByPatientId(
-    patientId: string,
-    clinicId: string,
-    filters: FindAppointmentsFilters,
-  ): Promise<{ appointments: Appointment[]; total: number }> {
-    let filtered = this.items.filter(
-      (item) =>
-        item.patientId === patientId &&
-        item.clinicId === clinicId &&
-        !item.deletedAt,
-    );
-
-    // Apply status filter
-    if (filters.status && filters.status !== 'all') {
-      filtered = filtered.filter((item) => item.status === filters.status);
-    }
-
-    // Apply date range filter
-    if (filters.startDate) {
-      filtered = filtered.filter(
-        (item) => item.appointmentStart >= filters.startDate,
-      );
-    }
-    if (filters.endDate) {
-      filtered = filtered.filter(
-        (item) => item.appointmentStart <= filters.endDate,
-      );
-    }
-
-    const total = filtered.length;
-
-    // Apply sorting
-    const sortDir = filters.sortDir === 'desc' ? -1 : 1;
-    filtered.sort((a, b) => {
-      const aVal = a[filters.sortBy as keyof Appointment];
-      const bVal = b[filters.sortBy as keyof Appointment];
-      if (aVal === null || aVal === undefined) return 1;
-      if (bVal === null || bVal === undefined) return -1;
-      if (aVal < bVal) return -1 * sortDir;
-      if (aVal > bVal) return 1 * sortDir;
-      return 0;
-    });
-
-    // Apply pagination
-    const start = (filters.page - 1) * filters.perPage;
-    const appointments = filtered.slice(start, start + filters.perPage);
-
-    return Promise.resolve({ appointments, total });
+    return { appointments, total };
   }
 
   create(data: Appointment): Promise<Appointment> {
@@ -209,6 +147,18 @@ export class InMemoryAppointmentsRepository extends AppointmentsRepository {
     if (index >= 0) {
       this.items[index] = appointment;
     }
+    return Promise.resolve(appointment);
+  }
+
+  saveWithStatusEvent(
+    appointment: Appointment,
+    statusEvent: AppointmentStatusEvent,
+  ): Promise<Appointment> {
+    const index = this.items.findIndex((item) => item.id === appointment.id);
+    if (index >= 0) {
+      this.items[index] = appointment;
+    }
+    this.statusEvents.push(statusEvent);
     return Promise.resolve(appointment);
   }
 

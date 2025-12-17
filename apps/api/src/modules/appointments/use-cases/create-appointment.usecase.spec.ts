@@ -1,10 +1,12 @@
 import { ResourceNotFoundError } from '../../../shared/errors/resource-not-found-error';
+import { Clinic } from '../../clinics/entities/clinic.entity';
 import { Patient } from '../../patients/entities/patient.entity';
 import { Provider } from '../../providers/entities/provider.entity';
 import { InMemoryAppointmentsRepository } from '../repositories/in-memory-appointments.repository';
 import { InMemoryBlockedTimeSlotsRepository } from '../repositories/in-memory-blocked-time-slots.repository';
 import { BlockedTimeSlot } from '../entities/blocked-time-slot.entity';
 import { CreateAppointmentUseCase } from './create-appointment.usecase';
+import { AppointmentSpansMidnightError } from './errors/appointment-spans-midnight.error';
 import { BlockedTimeSlotError } from './errors/blocked-time-slot.error';
 import { OutsideWorkingHoursError } from './errors/outside-working-hours.error';
 import { ProviderNotAvailableError } from './errors/provider-not-available.error';
@@ -14,6 +16,11 @@ describe('CreateAppointmentUseCase', () => {
   let sut: CreateAppointmentUseCase;
   let appointmentsRepository: InMemoryAppointmentsRepository;
   let blockedTimeSlotsRepository: InMemoryBlockedTimeSlotsRepository;
+  let mockClinicsApi: {
+    findById: jest.Mock;
+    createClinic: jest.Mock;
+    verifyUserBelongsToClinic: jest.Mock;
+  };
   let mockPatientsApi: {
     findById: jest.Mock;
     findByClinicId: jest.Mock;
@@ -28,6 +35,12 @@ describe('CreateAppointmentUseCase', () => {
   const clinicId = 'clinic-123';
   const patientId = 'patient-123';
   const providerId = 'provider-123';
+
+  const mockClinic = new Clinic({
+    id: clinicId,
+    name: 'Test Clinic',
+    timezone: 'America/Sao_Paulo',
+  });
 
   const mockPatient = new Patient({
     id: patientId,
@@ -54,6 +67,12 @@ describe('CreateAppointmentUseCase', () => {
     appointmentsRepository = new InMemoryAppointmentsRepository();
     blockedTimeSlotsRepository = new InMemoryBlockedTimeSlotsRepository();
 
+    mockClinicsApi = {
+      findById: jest.fn().mockResolvedValue(mockClinic),
+      createClinic: jest.fn(),
+      verifyUserBelongsToClinic: jest.fn(),
+    };
+
     mockPatientsApi = {
       findById: jest.fn(),
       findByClinicId: jest.fn(),
@@ -69,6 +88,7 @@ describe('CreateAppointmentUseCase', () => {
     sut = new CreateAppointmentUseCase(
       appointmentsRepository,
       blockedTimeSlotsRepository,
+      mockClinicsApi,
       mockPatientsApi,
       mockProvidersApi,
     );

@@ -4,8 +4,8 @@ import {
 } from './appointment-status.types';
 
 // Re-export for convenience
-export type { AppointmentStatus };
 export { appointmentStatusValues };
+export type { AppointmentStatus };
 
 /**
  * Allowed values for appointment status filter (includes 'all' option).
@@ -97,6 +97,3 @@ export interface FindAppointmentsByPatientInput {
   page?: number;
   perPage?: number;
 }
-
-// Re-export validStatusTransitions from the central status types
-export { validStatusTransitions } from './appointment-status.types';

@@ -149,8 +149,6 @@ export function PatientFormDialog({
         <Form {...form}>
           <form
             onSubmit={(e) => {
-              console.log("=== form onSubmit triggered ===");
-              console.log("form errors:", form.formState.errors);
               form.handleSubmit(onSubmit)(e);
             }}
             className="space-y-4"

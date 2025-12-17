@@ -6,7 +6,7 @@ import type {
 } from '../dto/update-appointment-status.dto';
 import { AppointmentStatusEvent } from '../entities/appointment-status-event.entity';
 import { AppointmentsRepository } from '../repositories/appointments.repository';
-import { validStatusTransitions } from '../types/appointment-filters.types';
+import { validStatusTransitions } from '../types/appointment-status.types';
 import { InvalidStatusTransitionError } from './errors/invalid-status-transition.error';
 
 /**
@@ -59,10 +59,6 @@ export class UpdateAppointmentStatusUseCase {
       appointment.checkedInAt = new Date();
     }
 
-    // Save appointment
-    const updatedAppointment =
-      await this.appointmentsRepository.save(appointment);
-
     // Create status event for audit trail
     const statusEvent = new AppointmentStatusEvent({
       appointmentId,
@@ -71,7 +67,13 @@ export class UpdateAppointmentStatusUseCase {
       changedById: changedById ?? null,
       notes: notes ?? null,
     });
-    await this.appointmentsRepository.createStatusEvent(statusEvent);
+
+    // Save appointment and status event in a single transaction
+    const updatedAppointment =
+      await this.appointmentsRepository.saveWithStatusEvent(
+        appointment,
+        statusEvent,
+      );
 
     return {
       appointment: updatedAppointment,

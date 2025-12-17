@@ -42,6 +42,37 @@ export class PrismaAppointmentsRepository extends AppointmentsRepository {
     clinicId: string,
     filters: FindAppointmentsFilters,
   ): Promise<{ appointments: Appointment[]; total: number }> {
+    return this.findWithFilters({ clinicId }, filters);
+  }
+
+  /** @inheritdoc */
+  async findByProviderId(
+    providerId: string,
+    clinicId: string,
+    filters: FindAppointmentsFilters,
+  ): Promise<{ appointments: Appointment[]; total: number }> {
+    return this.findWithFilters({ providerId, clinicId }, filters);
+  }
+
+  /** @inheritdoc */
+  async findByPatientId(
+    patientId: string,
+    clinicId: string,
+    filters: FindAppointmentsFilters,
+  ): Promise<{ appointments: Appointment[]; total: number }> {
+    return this.findWithFilters({ patientId, clinicId }, filters);
+  }
+
+  /**
+   * Private helper method to find appointments with common filtering logic.
+   * @param baseWhere - Base where clause with entity-specific conditions
+   * @param filters - Filter, sort, and pagination options
+   * @returns Object containing appointment entities and total count
+   */
+  private async findWithFilters(
+    baseWhere: Prisma.AppointmentWhereInput,
+    filters: FindAppointmentsFilters,
+  ): Promise<{ appointments: Appointment[]; total: number }> {
     const {
       startDate,
       endDate,
@@ -55,9 +86,8 @@ export class PrismaAppointmentsRepository extends AppointmentsRepository {
       perPage,
     } = filters;
 
-    // Build where clause
     const where: Prisma.AppointmentWhereInput = {
-      clinicId,
+      ...baseWhere,
       deletedAt: null,
     };
 
@@ -67,158 +97,28 @@ export class PrismaAppointmentsRepository extends AppointmentsRepository {
     }
 
     // Date range filter
-    if (startDate) {
+    if (startDate || endDate) {
       where.appointmentStart = {
-        ...(where.appointmentStart as Prisma.DateTimeFilter),
-        gte: startDate,
-      };
-    }
-    if (endDate) {
-      where.appointmentStart = {
-        ...(where.appointmentStart as Prisma.DateTimeFilter),
-        lte: endDate,
+        ...(startDate && { gte: startDate }),
+        ...(endDate && { lte: endDate }),
       };
     }
 
-    // Provider filter
+    // Optional filters (used by findByClinicId)
     if (providerId) {
       where.providerId = providerId;
     }
-
-    // Patient filter
     if (patientId) {
       where.patientId = patientId;
     }
-
-    // Location filter
     if (locationId) {
       where.locationId = locationId;
     }
 
-    // Build orderBy clause
     const orderBy: Prisma.AppointmentOrderByWithRelationInput = {
       [sortBy]: sortDir,
     };
 
-    // Execute query with pagination
-    const [appointments, total] = await Promise.all([
-      this.prisma.client.appointment.findMany({
-        where,
-        orderBy,
-        skip: (page - 1) * perPage,
-        take: perPage,
-      }),
-      this.prisma.client.appointment.count({ where }),
-    ]);
-
-    return {
-      appointments: appointments.map((appointment) =>
-        this.mapToEntity(appointment),
-      ),
-      total,
-    };
-  }
-
-  /** @inheritdoc */
-  async findByProviderId(
-    providerId: string,
-    clinicId: string,
-    filters: FindAppointmentsFilters,
-  ): Promise<{ appointments: Appointment[]; total: number }> {
-    const { startDate, endDate, status, sortBy, sortDir, page, perPage } =
-      filters;
-
-    // Build where clause
-    const where: Prisma.AppointmentWhereInput = {
-      providerId,
-      clinicId,
-      deletedAt: null,
-    };
-
-    // Status filter
-    if (status && status !== 'all') {
-      where.status = status;
-    }
-
-    // Date range filter
-    if (startDate) {
-      where.appointmentStart = {
-        ...(where.appointmentStart as Prisma.DateTimeFilter),
-        gte: startDate,
-      };
-    }
-    if (endDate) {
-      where.appointmentStart = {
-        ...(where.appointmentStart as Prisma.DateTimeFilter),
-        lte: endDate,
-      };
-    }
-
-    // Build orderBy clause
-    const orderBy: Prisma.AppointmentOrderByWithRelationInput = {
-      [sortBy]: sortDir,
-    };
-
-    // Execute query with pagination
-    const [appointments, total] = await Promise.all([
-      this.prisma.client.appointment.findMany({
-        where,
-        orderBy,
-        skip: (page - 1) * perPage,
-        take: perPage,
-      }),
-      this.prisma.client.appointment.count({ where }),
-    ]);
-
-    return {
-      appointments: appointments.map((appointment) =>
-        this.mapToEntity(appointment),
-      ),
-      total,
-    };
-  }
-
-  /** @inheritdoc */
-  async findByPatientId(
-    patientId: string,
-    clinicId: string,
-    filters: FindAppointmentsFilters,
-  ): Promise<{ appointments: Appointment[]; total: number }> {
-    const { startDate, endDate, status, sortBy, sortDir, page, perPage } =
-      filters;
-
-    // Build where clause
-    const where: Prisma.AppointmentWhereInput = {
-      patientId,
-      clinicId,
-      deletedAt: null,
-    };
-
-    // Status filter
-    if (status && status !== 'all') {
-      where.status = status;
-    }
-
-    // Date range filter
-    if (startDate) {
-      where.appointmentStart = {
-        ...(where.appointmentStart as Prisma.DateTimeFilter),
-        gte: startDate,
-      };
-    }
-    if (endDate) {
-      where.appointmentStart = {
-        ...(where.appointmentStart as Prisma.DateTimeFilter),
-        lte: endDate,
-      };
-    }
-
-    // Build orderBy clause
-    const orderBy: Prisma.AppointmentOrderByWithRelationInput = {
-      [sortBy]: sortDir,
-    };
-
-    // Execute query with pagination
     const [appointments, total] = await Promise.all([
       this.prisma.client.appointment.findMany({
         where,
@@ -327,6 +227,48 @@ export class PrismaAppointmentsRepository extends AppointmentsRepository {
         checkedInAt: appointment.checkedInAt,
       },
     });
+
+    return this.mapToEntity(updatedAppointment);
+  }
+
+  /** @inheritdoc */
+  async saveWithStatusEvent(
+    appointment: Appointment,
+    statusEvent: AppointmentStatusEvent,
+  ): Promise<Appointment> {
+    const [updatedAppointment] = await this.prisma.client.$transaction([
+      this.prisma.client.appointment.update({
+        where: {
+          id: appointment.id,
+        },
+        data: {
+          patientId: appointment.patientId,
+          providerId: appointment.providerId,
+          locationId: appointment.locationId,
+          appointmentStart: appointment.appointmentStart,
+          appointmentEnd: appointment.appointmentEnd,
+          patientName: appointment.patientName,
+          patientPhone: appointment.patientPhone,
+          providerName: appointment.providerName,
+          status: appointment.status,
+          notes: appointment.notes,
+          bookingSource: appointment.bookingSource,
+          confirmedAt: appointment.confirmedAt,
+          checkedInAt: appointment.checkedInAt,
+        },
+      }),
+      this.prisma.client.appointmentStatusEvent.create({
+        data: {
+          id: statusEvent.id,
+          appointmentId: statusEvent.appointmentId,
+          previousStatus: statusEvent.previousStatus,
+          newStatus: statusEvent.newStatus,
+          changedById: statusEvent.changedById,
+          changedAt: statusEvent.changedAt,
+          notes: statusEvent.notes,
+        },
+      }),
+    ]);
 
     return this.mapToEntity(updatedAppointment);
   }

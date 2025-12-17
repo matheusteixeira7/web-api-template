@@ -86,6 +86,17 @@ export abstract class AppointmentsRepository {
   abstract save(appointment: Appointment): Promise<Appointment>;
 
   /**
+   * Updates an appointment and creates a status event in a single transaction.
+   * @param appointment - The appointment entity with updated data
+   * @param statusEvent - The status event entity to persist
+   * @returns The updated appointment entity
+   */
+  abstract saveWithStatusEvent(
+    appointment: Appointment,
+    statusEvent: AppointmentStatusEvent,
+  ): Promise<Appointment>;
+
+  /**
    * Soft deletes an appointment by setting deletedAt timestamp.
    * @param id - The appointment's UUID
    */
